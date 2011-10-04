@@ -25,5 +25,8 @@ AST523_MATRIX *AST523_matrixNew(int nrow, // number of rows
 void AST523_matrixDel(AST523_MATRIX *M)
 {
   if (M == NULL) return;
+  
+  free(M->val);
+  free(M->val_s);
   free(M);
 }
