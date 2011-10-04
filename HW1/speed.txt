@@ -1,0 +1,29 @@
+-O0
+---
+
+   %   cumulative   self              self     total
+   time   seconds   seconds    calls   s/call   s/call  name
+ 100.25     14.08    14.08        1    14.08    14.08  matrix_multiply
+	0.14     14.10     0.02        2     0.01     0.01  sin_init
+	0.00     14.10     0.00        3     0.00     0.00  AST523_matrixDel
+	0.00     14.10     0.00        3     0.00     0.00  AST523_matrixNew
+	0.00     14.10     0.00        1     0.00     0.00  print_max
+	0.00     14.10     0.00        1     0.00     0.00  zero_init
+
+14.08 seconds
+
+-O1
+---
+
+10.18 seconds
+
+-O2
+---
+
+9.83 seconds
+Speedup over -0O: 1.43x
+
+-O3
+---
+
+9.78 seconds
