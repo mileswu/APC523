@@ -5,6 +5,7 @@
 //initialize a matrix using sin
 void sin_init(AST523_MATRIX *M){
   int row, col;
+  #pragma omp parallel for
   for(row = 0; row < M->nrow; row++) {
     for(col = 0; col < M->ncol; col++) {
       M->val[row][col] = sin(col + (M->ncol)*row); 
@@ -15,6 +16,7 @@ void sin_init(AST523_MATRIX *M){
 //initialize a matrix of zeros
 void zero_init(AST523_MATRIX *M){
   int row, col;
+  #pragma omp parallel for
   for(row = 0; row < M->nrow; row++) {
     for(col = 0; col < M->ncol; col++) {
       M->val[row][col] = 0; 
@@ -27,6 +29,7 @@ void zero_init(AST523_MATRIX *M){
 void matrix_multiply(AST523_MATRIX *A, AST523_MATRIX *B, AST523_MATRIX *C){
   int rowA, colA, colB;
   zero_init(C);
+  #pragma omp parallel for
   for(rowA = 0; rowA < A->nrow; rowA++) { 
     for(colB = 0; colB < B->ncol; colB++){ 
       for(colA = 0; colA < A->ncol; colA++){ 
