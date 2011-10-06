@@ -19,11 +19,28 @@ int main(int argc, char **argv) {
   int i;
   
   //original version of summation algorithm
-  for (i = imin; i <= imax; i++){
-  total += func(i);
+  int blocksize = 1;
+  int blocks = imax/blocksize;
+  int j;
+  int sanitycheck = 0;
+
+  for(i = imax; i >= imin + blocksize*blocks -1; i--) {
+	  sanitycheck += i;
+	  total += func(i);
   }
-  
-  printf ("error: %e \n", fabs(ans - (double) total));
+
+  for(j=blocks-1; j >= 0; j--) {
+	 float temp = 0;
+	 int start = imin + blocksize*j;
+	 for(i = start; i < start + blocksize; i++) {
+	    sanitycheck += i;
+		 temp += func(i);
+	 }
+	 total += temp;
+  }
+		  
+  printf ("error: %e \n", ans - (double) total);
+  printf ("sanity check: %d \n", sanitycheck);
   return 0;
 }
 
