@@ -6,6 +6,20 @@
 
 float func(int i);
 
+float recurse(int start, int end) {
+  /*printf("%d %d\n", start, end);
+  if(start != end - 1 && (end-start+1)%2 != 0) {
+	  exit(1);
+  }*/
+  if(start == end - 1) {
+	  return (func(start) + func(end));
+  }
+  else {
+	  return ( recurse(start, start + (end-start)/2) + 
+	  recurse(start + (end-start)/2 + 1, end));
+  }
+}
+
 int main(int argc, char **argv) {
   //check for the correct number of input arguments
   if(argc != 3){
@@ -19,28 +33,9 @@ int main(int argc, char **argv) {
   int i;
   
   //original version of summation algorithm
-  int blocksize = 1;
-  int blocks = imax/blocksize;
-  int j;
-  int sanitycheck = 0;
+  total = recurse(imin, imax);
 
-  for(i = imax; i >= imin + blocksize*blocks -1; i--) {
-	  sanitycheck += i;
-	  total += func(i);
-  }
-
-  for(j=blocks-1; j >= 0; j--) {
-	 float temp = 0;
-	 int start = imin + blocksize*j;
-	 for(i = start; i < start + blocksize; i++) {
-	    sanitycheck += i;
-		 temp += func(i);
-	 }
-	 total += temp;
-  }
-		  
-  printf ("error: %e \n", ans - (double) total);
-  printf ("sanity check: %d \n", sanitycheck);
+  printf ("error: %e \n", fabs(ans - (double) total));
   return 0;
 }
 
