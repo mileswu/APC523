@@ -6,18 +6,25 @@
 
 float func(int i);
 
-float recurse(int start, int end) {
-  /*printf("%d %d\n", start, end);
-  if(start != end - 1 && (end-start+1)%2 != 0) {
-	  exit(1);
-  }*/
-  if(start == end - 1) {
-	  return (func(start) + func(end));
-  }
-  else {
-	  return ( recurse(start, start + (end-start)/2) + 
-	  recurse(start + (end-start)/2 + 1, end));
-  }
+
+float* recursive_add(float *input, int length) {
+  int newlength = length/2;
+  float *output = (float *)malloc(sizeof(float) * newlength);
+
+
+  int i;
+  for(i = 0; i < newlength; i++)
+	  output[i] = input[2*i] + input[2*i+1];
+  
+  if(length%2 == 1)
+	  output[newlength-1] += input[length-1];
+  
+  if(newlength == 1)
+    return(output);
+  else
+	 return(recursive_add(output, newlength));
+	
+
 }
 
 int main(int argc, char **argv) {
@@ -33,7 +40,12 @@ int main(int argc, char **argv) {
   int i;
   
   //original version of summation algorithm
-  total = recurse(imin, imax);
+  float *input = (float *)malloc(sizeof(float) * (imax-imin+1));
+  for(i = imin; i <= imax; i++)
+    input[i] = func(i);
+
+  total = recursive_add(input, imax-imin+1)[0];
+
 
   printf ("error: %e \n", fabs(ans - (double) total));
   return 0;
