@@ -2,6 +2,8 @@
 #include "AST523_mmulti.h"
 #include "math.h"
 
+#define BLOCKSIZE 32
+
 //initialize a matrix using sin
 void sin_init(AST523_MATRIX *M){
   int row, col;
@@ -26,11 +28,15 @@ void zero_init(AST523_MATRIX *M){
 //while the answer is stored in C.
 void matrix_multiply(AST523_MATRIX *A, AST523_MATRIX *B, AST523_MATRIX *C){
   int rowA, colA, colB;
+  int rowA_block, colA_block, colB_block;
   zero_init(C);
-  for(rowA = 0; rowA < A->nrow; rowA++) { 
-    for(colB = 0; colB < B->ncol; colB++){ 
-      for(colA = 0; colA < A->ncol; colA++){ 
-	C->val[rowA][colB] += (A->val[rowA][colA])*(B->val[colA][colB]);
+  for(rowA_block = 0; rowA_block < A->nrow; rowA_block += BLOCKSIZE) { 
+    for(colB_block = 0; colB_block < B->ncol; colB_block += BLOCKSIZE){ 
+      for(colA_block = 0; colA_block < A->ncol; colA_block += BLOCKSIZE){
+        for(rowA = rowA_block; rowA < A->nrow && rowA < rowA_block + BLOCKSIZE; rowA++)  
+          for(colB = colB_block; colB < B->ncol && colB < colB_block + BLOCKSIZE; colB++)  
+            for(colA = colA_block; colA < A->ncol && colA < colA_block + BLOCKSIZE; colA++) 
+C->val[rowA][colB] += (A->val[rowA][colA])*(B->val[colA][colB]);
       }
     }
   }

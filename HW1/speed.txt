@@ -27,3 +27,9 @@ Speedup over -0O: 1.43x
 ---
 
 9.78 seconds
+
+
+-O2 w/ blocking
+---------------
+
+2.91 seconds
