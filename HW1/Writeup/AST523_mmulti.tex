@@ -1,0 +1,64 @@
+\documentclass[12pt]{article}
+\setlength{\topmargin}{0in}
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+\setlength{\textheight}{8.7in}
+\setlength{\textwidth}{6.5in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+\setlength{\parindent}{0.15in}
+\setlength{\parskip}{0.10in}
+
+\begin{document}
+
+\title{APC523: HW1 Matrix Multiplication}
+\author{Miles Wu}
+\maketitle
+
+\section{Memory Leaks}
+After compiling the program using `make', I checked the program for memory leaks using the following command: `valgrind --leak-check=yes ./AST523\_mmatrix 100 100 100'. This indicated that there were ten allocs but only 3 frees, causing a loss of 242,400 bytes. I decided to look at the `AST523\_matrixDel' function to see if it was correctly freeing the memory or not and noticed that it only had a single free (for M), where as the initialization function `AST523\_matrixNew' had three mallocs (for M, M-$>$val and M-$>$val\_s). I then added the two missing frees (for M-$>$val and M-$>$val\_s). Upon recompilation, valgrind then reported there was no lost memory and the memory leak was fixed.
+
+\section{Profiling}
+I ran `gprof' on the code to profile it and the output was as follows:
+\begin{verbatim}
+   %   cumulative   self              self     total
+  time   seconds   seconds    calls   s/call   s/call  name
+100.25     14.08    14.08        1    14.08    14.08  matrix_multiply
+  0.14     14.10     0.02        2     0.01     0.01  sin_init
+  0.00     14.10     0.00        3     0.00     0.00  AST523_matrixDel
+  0.00     14.10     0.00        3     0.00     0.00  AST523_matrixNew
+  0.00     14.10     0.00        1     0.00     0.00  print_max
+  0.00     14.10     0.00        1     0.00     0.00  zero_init
+\end{verbatim}
+
+From this, it is obvious that the `matrix\_multiply' routine is taking up all the computation time. Next I proceeded to investigate the compiler optimization levels. There was a $1.43\times$ speed up between -O0 and -O2. The run times for each level are shown in the table.
+
+\begin{center}
+\begin{tabular}{ | c | c | }
+  \hline
+  -O level & Time (s) \\
+  \hline
+  -O0 & 14.10 \\
+  -O1 & 10.18 \\
+  -O2 & 9.83 \\
+  -O3 & 9.78 \\
+  \hline
+\end{tabular}
+\end{center}
+
+\section{Optimization}
+Looking at the `matrix\_multiply' routine, I noticed that the multiplication was done in a way that was not very optimal with regards to cache usage. This was confirmed by using valgrind, which showed that there were a large number of L1 cache misses.
+
+For each of the three for loops, I split it up into two for loops: one that jumps the iteration variable by 32 every time, and an inner loop that iterates from 0 to 31. In the end this covers the exact same range of rows and columns, but in a different order. This `blocking' allows the processor to load the $32\times 32$ region of the A and B matrix that we are looking at into the fast L1 cache and therefore the innermost loop executes really quickly as it does not have to wait for data to be loaded. All the calculations involving that $32\times 32$ region are done at the same time.
+
+Before this optimization, the matrices weren't accesed by blocks. During the loops, the calculations spanned across the entire matrix space. However, the processor does not have enough cache space to fit the entire A and B matrix (both $1000 \times 1000$) into the cache. As a result the processor spent a lot of time waiting for data.
+
+This blocking optimization reduced the runtime to 2.91 seconds, which is a $3.4 \times$ speedup.
+
+\section{Parellization}
+The two initialization methods, `sin\_init' and `zero\_init', and the actual multiplication function, `matrix\_multiply', are prime targets for parellization because they do not need to access the matrix in order and do not refer to other parts of the matrix. With OpenMP, all that was needed was for me to add the OpenMP compile flag and to add `\#pragma omp parallel for' above each for loop that was to be parellized. 
+
+On a quad core system, it ran in 0.3 seconds which was a $3.8\times$ speedup over the single threaded version.
+
+
+\end{document}
