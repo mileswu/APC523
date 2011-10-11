@@ -58,7 +58,7 @@ This blocking optimization reduced the runtime to 2.91 seconds, which is a $3.4 
 \section{Parellization}
 The two initialization methods, `sin\_init' and `zero\_init', and the actual multiplication function, `matrix\_multiply', are prime targets for parellization because they do not need to access the matrix in order and do not refer to other parts of the matrix. With OpenMP, all that was needed was for me to add the OpenMP compile flag and to add `\#pragma omp parallel for' above each for loop that was to be parellized. 
 
-On a quad core system, it ran in 0.3 seconds which was a $3.8\times$ speedup over the single threaded version.
+On a quad core system, it ran in 2.99 seconds which was a $3.3\times$ speedup over the single threaded version.
 
 
 \end{document}

@@ -16,8 +16,17 @@
 \maketitle
 
 \section{Cause of Error}
+The source of the error is the round-off error of floats. A float only has a specified precision (it has a 24 bit mantissa), so the true value of $1/x$ is rounded to the nearest 24 digit binary number. This means that the round-off error for each term $\approx 2^{-24}$.
+
+When I am summing $n = 2^{24}$ terms, the total round-off error is $\approx 2^{24} \times 2^{-24} = 1$. This is why the total error becomes of order unity around $n = 2^{24}$.
 
 \section{Reduction of Error}
+Instead of doing a straightforward sum of all the $1/x$ terms, I tried to minimise error through paired addition. This involves calculating every single term and pairing neighbouring terms. Each pair then gets added to form a new number. If the list is odd in length, then the last pair has the last term added on as well. This process is then repeated until there is only a single number left.
 
+This should reduce the error because only numbers that are similar in magnitude are added together. This reduces the round-off error because the smaller numbers can use the exponent and use the 24 bit precision on the mantissa more effectively.
+
+\section{Conclusion}
+
+On $n = 2^{24}$ terms, originally I had an error of about $1.81$. With paired addition the error was reduced to $6 \times 10^{-6}$, which is significantly better than before.
 
 \end{document}
