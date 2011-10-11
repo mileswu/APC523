@@ -10,21 +10,23 @@ float func(int i);
 float* recursive_add(float *input, int length) {
   int newlength = length/2;
   float *output = (float *)malloc(sizeof(float) * newlength);
-
-
   int i;
+
+  // Add each pair and store in the output
   for(i = 0; i < newlength; i++)
-	  output[i] = input[2*i] + input[2*i+1];
+    output[i] = input[2*i] + input[2*i+1];
   
+  // Deal with the odd length edge case by adding it to the last pair
   if(length%2 == 1)
-	  output[newlength-1] += input[length-1];
+    output[newlength-1] += input[length-1];
   
+  free(input);
+  
+  // If it is still not a single number, run again
   if(newlength == 1)
     return(output);
   else
-	 return(recursive_add(output, newlength));
-	
-
+    return(recursive_add(output, newlength));
 }
 
 int main(int argc, char **argv) {
@@ -39,13 +41,15 @@ int main(int argc, char **argv) {
   float total = 0;
   int i;
   
-  //original version of summation algorithm
+  // Create an array with all the 1/x terms
   float *input = (float *)malloc(sizeof(float) * (imax-imin+1));
   for(i = imin; i <= imax; i++)
-    input[i] = func(i);
+    input[i-imin] = func(i);
 
-  total = recursive_add(input, imax-imin+1)[0];
-
+  // Run the recursive add function
+  float *output = recursive_add(input, imax-imin+1);
+  total = output[0];
+  free(output);
 
   printf ("error: %e \n", fabs(ans - (double) total));
   return 0;
