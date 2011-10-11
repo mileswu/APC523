@@ -2,6 +2,7 @@
 #include "AST523_mmulti.h"
 #include "math.h"
 
+// Block sized use in the blocking matrix multiplication. 32 seemed a good number
 #define BLOCKSIZE 32
 
 //initialize a matrix using sin
@@ -30,9 +31,13 @@ void matrix_multiply(AST523_MATRIX *A, AST523_MATRIX *B, AST523_MATRIX *C){
   int rowA, colA, colB;
   int rowA_block, colA_block, colB_block;
   zero_init(C);
+
+  // Block-level loops
   for(rowA_block = 0; rowA_block < A->nrow; rowA_block += BLOCKSIZE) { 
     for(colB_block = 0; colB_block < B->ncol; colB_block += BLOCKSIZE){ 
       for(colA_block = 0; colA_block < A->ncol; colA_block += BLOCKSIZE){
+
+  // Sub-matrix loops
         for(rowA = rowA_block; rowA < A->nrow && rowA < rowA_block + BLOCKSIZE; rowA++)  
           for(colB = colB_block; colB < B->ncol && colB < colB_block + BLOCKSIZE; colB++)  
             for(colA = colA_block; colA < A->ncol && colA < colA_block + BLOCKSIZE; colA++) 
