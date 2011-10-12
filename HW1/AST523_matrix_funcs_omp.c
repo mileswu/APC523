@@ -27,32 +27,14 @@ void zero_init(AST523_MATRIX *M){
 //performs the matrix multiplication A*B = C. Matrices A&B are unchanged
 //while the answer is stored in C.
 void matrix_multiply(AST523_MATRIX *A, AST523_MATRIX *B, AST523_MATRIX *C){
+  int rowA, colA, colB;
   zero_init(C);  
-  #pragma omp parallel 
-  {
-    int rowA, colA, colB;
-    
-    AST523_MATRIX *TEMP;
-    TEMP = AST523_matrixNew(C->nrow, C->ncol);
-    zero_init(TEMP);
-    
-    #pragma omp for
-    for(rowA = 0; rowA < A->nrow; rowA++) { 
-      for(colB = 0; colB < B->ncol; colB++){ 
-        for(colA = 0; colA < A->ncol; colA++){ 
-  	TEMP->val[rowA][colB] += (A->val[rowA][colA])*(B->val[colA][colB]);
-        }
-      }
-    }
-    
-    for(rowA = 0; rowA < A->nrow; rowA++) { 
-      for(colB = 0; colB < B->ncol; colB++){ 
-        #pragma omp critical(add)
-        {
-          C->val[rowA][colB] += TEMP->val[rowA][colB];
-        }
-        
-      }
+  #pragma omp parallel for private(rowA, colA, colB) 
+  for(rowA = 0; rowA < A->nrow; rowA++) { 
+    for(colB = 0; colB < B->ncol; colB++){ 
+      for(colA = 0; colA < A->ncol; colA++){ 
+        C->val[rowA][colB] += (A->val[rowA][colA])*(B->val[colA][colB]);
+      }      
     }
   }
 }
