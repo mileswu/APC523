@@ -1,16 +1,14 @@
 #include "minimization.h"
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
 double x2(double i) { return(i*i + 50*i); }
+double x4(double i) { return(i*i*i*i + 5*i*i + 50*i); }
 
 int main() {
-	double ret_a, ret_c;
-	bracket(1.0, &ret_a, &ret_c, x2);
-
-	cout << "A: " << ret_a << " C: " << ret_c << endl;
-	
+	brent(1.6, cos);
 
 	return(0);
 }

@@ -11,13 +11,14 @@ void bracket(double x0, double *ret_a, double *ret_c, double(*f)(double)) {
 	/* What if x0 is a global maximum then this will fail.
 	 * Should also add in quadratic parabola stuff 
 	 * */
-	double smallstep = DBL_EPSILON;
+	double smallstep = 1e-6;
 	double ratio = 2;
 	
 
 	double a, b, c;
 	a = x0 - smallstep;
 	b = x0;
+
 	if(f(b) > f(a)) {
 		double temp;
 		temp = b;
@@ -80,11 +81,11 @@ double choose_lowest_three(double *a, double *b, double *c, double *d, double(*f
 			swap(c, d);
 	}
 	best = *a;
-		/*DEBUG("choose lowest three a: "
+		DEBUG("choose lowest three a: "
 		<< "f(A=" << *a << ") = " << f(*a) << ". "
 		<< "f(B=" << *b << ") = " << f(*b) << ". "
 		<< "f(C=" << *c << ") = " << f(*c) << ". "
-		<< "f(D=" << *d << ") = " << f(*d) << ". ");*/
+		<< "f(D=" << *d << ") = " << f(*d) << ". ");
 	
 	for(int i=0; i<3; i++) {
 		if(*a > *b)
@@ -130,15 +131,15 @@ double brent(double x0, double(*f)(double)) {
 			else
 				d = b + fraction*(c-b);
 		}
-		/*DEBUG("d - " << d);
-		DEBUG("parabola: " << parabola_success);*/
+		DEBUG("d - " << d);
+		DEBUG("parabola: " << parabola_success);
 
 		best = choose_lowest_three(&a, &b, &c, &d, f);
 
-		/*(DEBUG("Fmin: "
+		DEBUG("Fmin: "
 		<< "f(A=" << a << ") = " << f(a) << ". "
 		<< "f(B=" << b << ") = " << f(b) << ". "
-		<< "f(C=" << c << ") = " << f(c) << ". ");*/
+		<< "f(C=" << c << ") = " << f(c) << ". ");
 
 		if(fabs(c-a) < precision) {
 			DEBUG("Fmin final result: f(" << b << ") = " << f(b));
@@ -148,6 +149,7 @@ double brent(double x0, double(*f)(double)) {
 
 		prev_prev_movement = prev_movement;
 		prev_movement = fabs(d - best);
+		DEBUG("--");
 	}
 	cerr << "Iterations exceeded. Seek help" << endl;
 	exit(1);
