@@ -21,4 +21,5 @@ class Vector {
 };
 
 Vector operator+(Vector& a, Vector& b);
+Vector operator-(Vector& a, Vector& b);
 Vector operator*(Vector& a, double b); 

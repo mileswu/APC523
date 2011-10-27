@@ -14,14 +14,11 @@ Vector::Vector(int n) {
 }
 
 Vector::~Vector() {
-	/*cout << "Freeing: ";
-	print();*/
 	delete[] data;
 }
 
 Vector::Vector(const Vector& rhs) {
 	size = rhs.size;
-	delete[] data;
 	data = new double[size];
 	std::copy(rhs.data, rhs.data+size, data);
 }
@@ -65,6 +62,10 @@ Vector operator+ (Vector& a, Vector& b) {
 		output[i] = a[i] + b[i];	
 	
 	return(output);
+}
+Vector operator- (Vector& a, Vector& b) {
+	Vector temp = b*(-1.0);
+	return(a + temp);
 }
 
 Vector operator* (Vector& a, double b) {
