@@ -1,4 +1,4 @@
-CFLAGS = -g -Wall -O2
+CXXFLAGS = -g -Wall -O2
 CC = g++
 
 all: problem1 problem2
