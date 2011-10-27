@@ -4,14 +4,16 @@
 #include <stdlib.h>
 #include <float.h>
 #include <cmath>
+#include <list>
 
 using namespace std;
 
-void bracket(double x0, double *ret_a, double *ret_c, double(*f)(double)) {
+template <class C>
+void bracket(double x0, double *ret_a, double *ret_c, C &f) {
 	/* What if x0 is a global maximum then this will fail.
 	 * Should also add in quadratic parabola stuff 
 	 * */
-	double smallstep = 1e-6;
+	double smallstep = 1e-5;
 	double ratio = 2;
 	
 
@@ -45,11 +47,11 @@ void bracket(double x0, double *ret_a, double *ret_c, double(*f)(double)) {
 		}
 	}
 
-	DEBUG("Bracketing (x0 = " << x0 << "): "
+	/*DEBUG("Bracketing (x0 = " << x0 << "): "
 	<< "f(A=" << a << ") = " << f(a) << ". "
 	<< "f(B=" << b << ") = " << f(b) << ". "
 	<< "f(C=" << c << ") = " << f(c) << ". "
-	<< "Found after " << no_of_iters << " iterations.");
+	<< "Found after " << no_of_iters << " iterations.");*/
 
 	if(a > c) {
 	 	*ret_a = a;
@@ -69,8 +71,8 @@ void swap(double *a, double *b) {
 	*b = temp;
 }
 
-
-double choose_lowest_three(double *a, double *b, double *c, double *d, double(*f)(double)) {
+template <class C>
+double choose_lowest_three(double *a, double *b, double *c, double *d, C &f) {
 	double best;
 	for(int i=0; i<4; i++) {
 		if(f(*a) > f(*b))
@@ -81,11 +83,11 @@ double choose_lowest_three(double *a, double *b, double *c, double *d, double(*f
 			swap(c, d);
 	}
 	best = *a;
-		DEBUG("choose lowest three a: "
+		/*DEBUG("choose lowest three a: "
 		<< "f(A=" << *a << ") = " << f(*a) << ". "
 		<< "f(B=" << *b << ") = " << f(*b) << ". "
 		<< "f(C=" << *c << ") = " << f(*c) << ". "
-		<< "f(D=" << *d << ") = " << f(*d) << ". ");
+		<< "f(D=" << *d << ") = " << f(*d) << ". ");*/
 	
 	for(int i=0; i<3; i++) {
 		if(*a > *b)
@@ -96,16 +98,17 @@ double choose_lowest_three(double *a, double *b, double *c, double *d, double(*f
 	return(best);
 }
 
-double brent(double x0, double(*f)(double)) {
+template <class C>
+double brent(double x0, C &f) {
 	double a, b, c, d, prev_movement, prev_prev_movement, best;
 	double fraction = (3.0 - sqrt(5.0))/2.0;
-	double precision = 1e-6;
+	double precision = 1e-5;
 	//precision = 0.1;
 
 	bracket(x0, &a, &c, f);
 	b = a + (c - a)/2.0;
 
-	for(int iter=0;iter<1000;iter++) {
+	for(int iter=0;iter<50;iter++) {
 		//Parabola
 		double ba, fbfa, bc, fbfc;
 		ba = b - a;
@@ -131,15 +134,17 @@ double brent(double x0, double(*f)(double)) {
 			else
 				d = b + fraction*(c-b);
 		}
-		DEBUG("d - " << d);
-		DEBUG("parabola: " << parabola_success);
+		//DEBUG("d - " << d);
+		//DEBUG("parabola: " << parabola_success);
 
 		best = choose_lowest_three(&a, &b, &c, &d, f);
 
-		DEBUG("Fmin: "
+		/*DEBUG("Fmin: "
 		<< "f(A=" << a << ") = " << f(a) << ". "
 		<< "f(B=" << b << ") = " << f(b) << ". "
 		<< "f(C=" << c << ") = " << f(c) << ". ");
+
+		cout << "Fmin abs: " << fabs(c-a) << endl;*/
 
 		if(fabs(c-a) < precision) {
 			DEBUG("Fmin final result: f(" << b << ") = " << f(b));
@@ -149,11 +154,97 @@ double brent(double x0, double(*f)(double)) {
 
 		prev_prev_movement = prev_movement;
 		prev_movement = fabs(d - best);
-		DEBUG("--");
+		//DEBUG("--");
 	}
 	cerr << "Iterations exceeded. Seek help" << endl;
 	exit(1);
 }
+
+OneDFunctor::OneDFunctor(double(*f)(double)) {
+	function = f;
+}
+
+double OneDFunctor::operator() (double x) {
+	return(function(x));
+}
+
+void temp(double(*f)(double)) {
+	OneDFunctor b(f);
+	brent(0.0, b);
+}
+
+
+NDto1DFunctor::NDto1DFunctor(Vector &x0_i, Vector &line_i, double(*f)(Vector)) : x0(3), line(3) {
+	x0 = x0_i;
+	line = line_i;
+	function = f;
+}
+
+double NDto1DFunctor::operator() (double l) {
+	Vector temp = line * l;
+	return(function(x0 + temp));
+}
+
+Vector minimize_along_line(Vector &x0, Vector &line, double(*f)(Vector)) {
+	NDto1DFunctor functor(x0, line, f);;
+	double x;
+	x = brent(0.0, functor);
+	Vector temp = line * x;
+	
+	DEBUG("Minimized along line " << line.to_s() << ": f" << (x0 + temp).to_s() << "=" << functor(x));
+	return(x0 + temp);
+}
+
+Vector powell(Vector &x0, double(*f)(Vector)) {
+	int dimensions = x0.dimensions();
+	list<Vector> u;
+	list<Vector> p;
+	double previous_value=DBL_MAX;
+	double precision = 1e-5;
+
+	// Initialize the search vectors to unit ones
+	for(int i=0; i<dimensions; i++) {
+		Vector temp(dimensions);
+		temp[i] = 1.0;
+		u.push_back(temp);
+	}
+
+	// Set p_0
+	p.push_back(x0);
+
+	for(int iter=0; iter<1000; iter++) {
+		list<Vector>::iterator p_it = p.begin();
+		for(list<Vector>::iterator u_it=u.begin(); u_it != u.end(); u_it++) {
+			Vector temp = minimize_along_line(*p_it, *u_it, f);
+			p.push_back(temp);
+			p_it++;
+		}
+
+		// shift u's and insert u_n
+		u.pop_front();
+		u.push_back(p.back() - p.front());
+
+		// Min p_n to p_0
+		//cout << "final min along line: " << u.back().to_s() << " from " << p.back().to_s()  << endl;
+		Vector temp = minimize_along_line(p.back(), u.back(), f);
+		p.push_front(temp);
+		p.resize(1, dimensions);
+		
+		DEBUG("Powell iteration. f" << p.front().to_s() << "=" << f(p.front()));
+		// Check result
+		if(fabs(f(p.front()) - previous_value) < precision) {
+			DEBUG("Finished Powell. f" << p.front().to_s() << "=" << f(p.front()) << " in " << iter << "iterations");
+			return(p.front());
+		}
+		previous_value = f(p.front());
+	}
+	
+}
+
+
+	
+
+
 
 
 		
