@@ -2,28 +2,51 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <iostream>
-
-using namespace std;
+#include <sstream>
 
 Vector::Vector(int n) {
 	size = n;
-	data = (double *) malloc(sizeof(double) * n);
+	//data = (double *) malloc(sizeof(double) * n);
+	data = new double[n];
 
 	for(int i=0; i<n; i++)
 		data[i] = 0;
 }
 
 Vector::~Vector() {
-	cout << "Freeing: ";
-	print();
-	free(data);
+	/*cout << "Freeing: ";
+	print();*/
+	delete[] data;
+}
+
+Vector::Vector(const Vector& rhs) {
+	size = rhs.size;
+	delete[] data;
+	data = new double[size];
+	std::copy(rhs.data, rhs.data+size, data);
+}
+Vector& Vector::operator=(Vector& rhs) {
+	Vector tmp(rhs);
+	swap(data, tmp.data);
+	swap(size, tmp.size);
+	return *this;
+}
+
+
+string Vector::to_s() {
+	stringstream s;
+	s << "(";
+
+	for(int i=0; i<size-1; i++)
+		s << data[i] << ",";
+	s << data[size-1];
+	
+	s << ")";
+	return(s.str());
 }
 
 void Vector::print() {
-	cout << "(";
-	for(int i=0; i<size; i++)
-		cout << data[i] << ",";
-	cout << ")" << endl;
+	cout << to_s() << endl;
 }
 
 int Vector::dimensions() {
