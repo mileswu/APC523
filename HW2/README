@@ -1,0 +1,15 @@
+
+
+----------------
+- INSTRUCTIONS - 
+----------------
+
+problem1.pdf - Writeup for Q1 questions
+
+./problem1 <value for j>
+Output is produced in a csv file with iteration # and error as the two columns
+
+./problem2
+This prints the answer
+
+

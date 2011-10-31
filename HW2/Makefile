@@ -2,6 +2,7 @@ CXXFLAGS = -g -Wall -O2
 CC = g++
 
 all: problem1 problem2
+	cat README
 
 problem1: problem1.o matrix.o
 	$(CC) -o $@ $^
