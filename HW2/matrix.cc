@@ -9,6 +9,7 @@ Matrix::Matrix (int r, int c) {
 	rows = r;
 	cols = c;
 
+	// Initialize to 0
 	data = new double[r*c];
 	for(int i=0; i<r*c; i++)
 		data[i] = 0;
@@ -19,6 +20,7 @@ Matrix::~Matrix () {
 }
 
 Matrix::Matrix(const Matrix& rhs) {
+	// Construction from another Matrix
 	rows = rhs.rows;
 	cols = rhs.cols;
 	data = new double[rows*cols];
@@ -26,6 +28,7 @@ Matrix::Matrix(const Matrix& rhs) {
 }
 
 Matrix& Matrix::operator=(Matrix& rhs) {
+	// Assignment operator
 	Matrix tmp(rhs);
 	swap(data, tmp.data);
 	swap(cols, tmp.cols);
@@ -34,5 +37,6 @@ Matrix& Matrix::operator=(Matrix& rhs) {
 }
 
 double& Matrix::operator() (int r, int c) {
+	// Accessor method for accessing by row,col
 	return data[r*cols + c];
 }
