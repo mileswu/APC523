@@ -41,42 +41,41 @@ Matrix *b_vector(int j) {
 	return(m_ptr);
 }
 
-Matrix *jacobi_iteration(Matrix *a, Matrix *last, Matrix *rhs) {
-	Matrix *retval = new Matrix(N,1);
+void jacobi_iteration(Matrix& a, Matrix& last, Matrix& rhs) {
+	Matrix retval(N,1);
 
 	for(int i=0; i<N; i++) {
 		double sum = 0;
 		for(int j=0; j<N; j++) {
 			if(i == j) continue;
-			sum += (*a)(i,j) * (*last)(j,0);
+			sum += a(i,j) * last(j,0);
 		}
 
-		(*retval)(i, 0) = ((*rhs)(i,0) - sum) / (*a)(i,i);
+		retval(i, 0) = (rhs(i,0) - sum) / a(i,i);
 	}
 
-	delete last;
-	return(retval);
+	last = retval;
 }
 
-double error_comparison(Matrix *a, Matrix *b) {
+double error_comparison(Matrix &a, Matrix &b) {
 	double error = -1, cur_error;
 	for(int i=0; i<N; i++)
-		cur_error = fabs((*a)(i,0) - (*b)(i,0));
+		cur_error = fabs(a(i,0) - b(i,0));
 		if(cur_error < error || error == -1)
 			error = cur_error;
 	return(error);
 }
 
-void print_vector(Matrix *v) {
+void print_vector(Matrix &v) {
 	for(int i=0; i<N; i++)
-		cout << (*v)(i,0) << ",";
+		cout << v(i,0) << ",";
 	cout << endl;
 }
 
 int main(int argv, char **argc) {
 	int j;
 	if(argv != 2) {
-		cout << "Usage: " << argc[0] << " <value for j>" << endl;
+		cout << "Usage: " << argc[0] << " <value for j (the eigenvalue)>" << endl;
 		return(1);
 	}
 	j = atoi(argc[1]);
@@ -93,11 +92,11 @@ int main(int argv, char **argc) {
 	fout.open(ss.str().c_str());
 	
 	for(int i=0; i<10000; i++) {
-		double error = error_comparison(x_iter, x);
+		double error = error_comparison(*x_iter, *x);
 		if(i%100 == 0)
 			fout << i << " " << error << endl;
 
-		x_iter = jacobi_iteration(t, x_iter, b);
+		jacobi_iteration(*t, *x_iter, *b);
 	}
 
 	delete t;
