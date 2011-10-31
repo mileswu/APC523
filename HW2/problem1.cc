@@ -84,10 +84,15 @@ int main(int argv, char **argc) {
 	// Argument parsing for j (the eigenvalue)
 	int j;
 	if(argv != 2) {
-		cout << "Usage: " << argc[0] << " <value for j (the eigenvalue)>" << endl;
+		cout << "Usage: " << argc[0] << " <value for j (the eigenvalue), eg. 1>" << endl;
 		return(1);
 	}
 	j = atoi(argc[1]);
+	if(j < 1 || j > 100) {
+		cout << "Invalid argument for j." << endl;
+		cout << "Usage: " << argc[0] << " <value for j (the eigenvalue), eg. 1>" << endl;
+		return(1);
+	}
 
 	// Creation of all the matrix and vectors
 	Matrix *t = t_matrix();
