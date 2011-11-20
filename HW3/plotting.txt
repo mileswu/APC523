@@ -1,50 +1,51 @@
-set term epslatex
+set term epslatex color
 set output 'q1b.tex'
-set size square
-plot 'q1-euler.csv' using 2:3 with lines title 'Euler', 'q1-rk4.csv' using 2:3 with lines title 'RK4', 'q1-bs.csv' using \
+set size 5/4., 4/3.
+set size ratio -1
+plot [-4:4] [-4:4] 'q1-euler.csv' using 2:3 with lines title 'Euler', 'q1-rk4.csv' using 2:3 with \
+lines title 'RK4', 'q1-bs.csv' using \
 2:3 with lines title 'Bulirsch-Stoer'
 
-
-set term epslatex
-set output 'q1b-energy.tex'
+set term epslatex color
+set output 'q1b-error.tex'
 set size 5/4., 4/3.
-set xlabel 'Time'
-set ylabel 'Energy'
-plot 'q1-euler.csv' using 1:4 with lines title 'Euler', 'q1-rk4.csv' using 1:4 with lines title 'RK4', 'q1-bs.csv' using \
-1:4 with lines title 'Bulirsch-Stoer'
+set log y
+plot 'q1-euler.csv' using 1:6 title 'Euler' with lines, 'q1-rk4.csv' using 1:6 title 'RK4' with lines, \
+'q1-bs.csv' using 1:6 title 'Bulirsch-Stoer' with lines
 
-set term epslatex
-set output 'q1b-l.tex'
+set term epslatex color
+set output 'q1b-error-cputime.tex'
 set size 5/4., 4/3.
-set xlabel 'Time'
-set ylabel 'Angular Momentum'
-plot 'q1-euler.csv' using 1:5 with lines title 'Euler', 'q1-rk4.csv' using 1:5 with lines title 'RK4', 'q1-bs.csv' using \
-1:5 with lines title 'Bulirsch-Stoer'
-
+set log y
+plot [0:60] 'q1-euler.csv' using 1:6 title 'Euler' with lines, 'q1-rk4.csv' using 1:6 title 'RK4' with lines,\
+'q1-bs.csv' using 1:6 title 'Bulirsch-Stoer' with lines
 
 // QUESTION 2
 
-set term epslatex
+set term epslatex color
 set output 'q2.tex'
 set size 5/4., 4/3.
 set xlabel 'Time'
 set ylabel 'Displacement'
-plot 'q2-timestep-0.25.csv' with lines title 'Timestep: 0.25', 'q2-timestep-1.csv' with lines title 'Timestep: 1', \
-'q2-timestep-1.5.csv' with lines title 'Timestep: 1.5', 'q2-timestep-2.csv' with lines title 'Timestep: 2'
+plot 'q2-timestep-0.25.csv' with lines title 'Timestep: 0.25', \
+'q2-timestep-1.csv' with lines title 'Timestep: 1', \
+'q2-timestep-1.5.csv' with lines title 'Timestep: 1.5', \
+'q2-timestep-2.csv' with lines title 'Timestep: 2'
 
 
 // QUESTION 3
-set term epslatex
-set output 'q3.tex'
+set term epslatex color
+set output 'q3-energy.tex'
 set size 5/4., 4/3.
 set xlabel 'Time'
 set ylabel 'Energy'
 plot 'q3/q3-energy.csv' with lines notitle
 
 // QUESTION 4
-set term epslatex
+set term epslatex color
 set output 'q4.tex'
 set size 5/4., 4/3.
+set log
 set ylabel 'Time'
 set xlabel 'Number of Particles'
 plot 'q4.csv' with lp notitle
