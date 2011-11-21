@@ -1,0 +1,126 @@
+\documentclass[11pt]{article}
+\setlength{\topmargin}{0in}
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+\setlength{\textheight}{8.7in}
+\setlength{\textwidth}{6.5in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+\setlength{\parindent}{0.15in}
+\setlength{\parskip}{0.05in}
+
+\usepackage{graphicx}
+\usepackage{subfig}
+
+\begin{document}
+
+\title{APC523: HW3}
+\author{Miles Wu}
+\maketitle
+
+\section{Question 1}
+\subsection{a}
+\begin{eqnarray}
+\dot{x} &=& v_x \\
+\dot{y} &=& v_y \\
+\dot{v_x} &=& - \frac{1}{(x^2 + y^2)^{3/2}} x \\
+\dot{v_y} &=& - \frac{1}{(x^2 + y^2)^{3/2}} y
+\end{eqnarray}
+
+\subsection{b}
+\begin{figure}
+  \centering
+\resizebox{0.6\textwidth}{!}{\input{q1b.tex}}
+  \caption{The three integration methods (Euler, RK4 and Bulirsch-Stoer) are used for a particle in a circular orbit with the same timestep ($\Delta t = 0.03$). Ten orbits are plotted here.}
+  \label{q1b-plot}
+\end{figure}
+Figure~\ref{q1b-plot} shows the three integrators being used on a circular orbit. It is immediately apparent that the Euler integrator is very inaccurate as it is spiralling out of the circular orbit. By the time it completes ten full orbits, it is $3.5\times$ further out than it started. On the other hand, RK4 and Bulirsch-Stoer seem to be a near-perfect circle at the same timestep. This is because the Euler integrator is a first order integrator, but the others are much higher order and therefore the error is much less.
+
+\begin{figure}
+  \centering
+\resizebox{0.6\textwidth}{!}{\input{q1b-error.tex}}
+  \caption{The errors for the three integration methods (Euler, RK4 and Bulirsch-Stoer) on a particle in a circular orbit with the same timestep ($\Delta t = 0.03$) are plotted here.}
+  \label{q1b-error}
+\end{figure}
+We define the error, $e$, to be: $e^2 = (x_{numerical} - x_{analytical})^2 + (y_{numerical} - y_{analytical})^2$. For our case of having circular motion with a radius of 1, the analytical solution is pretty simple: $y = \sin t$, $x = \cos t$. Figure~\ref{q1b-error} shows the results of this. So far it looks like Bulirsch-Stoer is the best method.
+
+\begin{figure}
+  \centering
+\resizebox{0.6\textwidth}{!}{\input{q1b-error-cputime.tex}}
+  \caption{The errors for the three integration methods (Euler, RK4 and Bulirsch-Stoer) on a particle in a circular orbit are plotted. Instead of them having the same timestep, we now have it so that they consume the same amount of cpu time.}
+  \label{q1b-error-cpu}
+\end{figure}
+However, we have not taken into account cpu time. We ran the program on a much longer simulation to measure the cpu time spent on each method and we found that RK4 took approximately $6.8\times$ more cpu time than Euler, and Bulirsch-Stoer required $25\times$ more cpu time than Euler. To find which method is best for a given cpu time, we must modify the timesteps by these factors so that the cpu time used between them is equal. Figure~\ref{q1b-error-cpu} shows the error after we make this modification for cpu time. Looking at this, we see that Bulirsch-Stoer is the method with the highest accuracy for a given amount of cpu time.
+
+None of these methods conserve energy or angular momentum. In Euler, the energy and angular momentum increases. In RK4, energy and angular momentum decreases slowly. In Bulirsch-Stoer, energy decreases and angular momentum increases slowly.
+
+\subsection{c}
+\begin{figure}
+  \centering
+\resizebox{0.6\textwidth}{!}{\input{q1c.tex}}
+  \caption{The three integration methods (Euler, RK4 and Bulirsch-Stoer) are used for a particle in an elliptical orbit.}
+  \label{q1c-plot}
+\end{figure}
+\begin{figure}
+  \centering
+\resizebox{0.6\textwidth}{!}{\input{q1c-error-cputime.tex}}
+  \caption{The errors for the three integration methods (Euler, RK4 and Bulirsch-Stoer) on a particle in an elliptical orbit are plotted. We have it so that they consume the same amount of cpu time.}
+  \label{q1c-error-cpu}
+\end{figure}
+
+By Kepler's Laws, for an elliptical orbit with $e=0.9$, we need an initial velocity of $\sqrt{19}$ and an initial position of $0.1$. Figure~\ref{q1c-plot} shows this. While RK4 and Bulirsch-Stoer produced the elliptical orbit, Euler once again began to quickly deviate. This is seen again in the error plot, Figure~\ref{q1c-error-cpu} where all three integrators use the same amount of cpu time. Here we see that RK4 is slightly better than Bulirsch-Stoer, though only marginally, as it produces a slightly higher accuracy for the same amount of cpu time. Again, no method conserves energy or angular momentum. 
+
+\subsection{References/Credits}
+For the RK4 and Bulrisch-Stoer integrators, we used some code from:
+
+Press, WH; Teukolsky, SA; Vetterling, WT; Flannery, BP. \emph{Numerical Recipes: The Art of Scientific Computing} (2nd ed.). New York: Cambridge University Press, 1992.
+
+\section{Question 2}
+\begin{figure}
+  \centering
+\resizebox{0.6\textwidth}{!}{\input{q2.tex}}
+  \caption{A plot showing the numerical integration of a simple harmonic oscillator using the leap-frog integrator. Various timesteps are ploted (in units of $1/\Omega$).}
+  \label{q2-plot}
+\end{figure}
+Figure~\ref{q2-plot} shows the results of the leap-frog integrator on the simple harmonic oscillator potential with various timesteps. It is clear that smaller timesteps yield more accurate results, since the analytical solution is that of a cosine wave. Nonetheless all the timesteps up to $\Omega \Delta t = 2$ still remained stable and gave an oscillating solution.
+
+When we use a timestep of $\Omega \Delta t = 3$, we find that the solution explodes and does not remain stable. Instead of oscillating between two values, it is not bounded and keeps increasing.
+
+\section{Question 3}
+\begin{figure}
+  \centering
+  {\includegraphics[width=0.8\textwidth]{q3-before.png}}                
+  {\includegraphics[width=0.8\textwidth]{q3-after.png}}
+  \caption{The top plot shows the initial positions of all 100 stars at $t=0$ projected on the $x$-$y$ plane. The bottom plot shows the positions of all 100 stars at $t=10$ projected on the $x$-$y$ plane. The scale and range are kept consistent between the two plots.}
+  \label{q3-plot}
+\end{figure}
+\begin{figure}
+  \centering
+\resizebox{0.6\textwidth}{!}{\input{q3-energy.tex}}
+  \caption{A plot showing the energy of the system versus time.}
+  \label{q3-energy}
+\end{figure}
+Figure~\ref{q3-plot} shows the before and after positions of the 100 stars. A fairly small timestep was chosen ($\Delta t = 0.0001$) to ensure that we did not lose accuracy unnecessarily (especially when two stars get very close there is a tendency for them to fly apart), whilst it was not so small that the program would take forever to execute.
+
+Figure~\ref{q3-energy} shows the energy of the system as it evolves. There is a lot of energy variation in the first bit of the simulation, but later on it becomes fairly stable. These energy fluctuations happen when two particles get too close to each other and the simulation becomes inaccurate both because of the inadequate timestep.
+
+\section{Question 4}
+\begin{figure}
+  \centering
+\resizebox{0.6\textwidth}{!}{\input{q4.tex}}
+  \caption{A graph showing the runtime of the integrator versus the number of particles in the simulation. This has been plotted on a log-log scale.}
+  \label{q4}
+\end{figure}
+Figure~\ref{q4} shows the dependence of the runtime of the program on the number of particles. As it has been plotted on a log-log scale, we can just take the gradient of this to work out the power dependence. From this we can clearly see that it scales as $N^2$.
+
+As it took 16 minutes to do $N=800$, the maximum number we can do in 24 hours is with the current computer, code and timestep:
+\begin{eqnarray}
+N = \log_2 \frac{24 \times 60}{16} \times 800 \approx 8400
+\end{eqnarray}
+
+Each iteration of the algorithm involves $24N(N-1) + 6 N$ floating-point operations. For $N=800$ this is approximately 15 million floating-point operations. My computer ran 100000 iterations in 954 seconds. This means:
+\begin{eqnarray}
+\textnormal{Rate} = \frac{15 \times 10^6} { 954 \div 100000 } \approx 1600~\textnormal{MFLOPs}.
+\end{eqnarray}
+
+\end{document}
