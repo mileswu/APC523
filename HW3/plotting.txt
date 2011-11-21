@@ -8,6 +8,8 @@ lines title 'RK4', 'q1-bs.csv' using \
 
 set term epslatex color
 set output 'q1b-error.tex'
+set xlabel 'Time'
+set ylabel 'Error'
 set size 5/4., 4/3.
 set log y
 plot 'q1-euler.csv' using 1:6 title 'Euler' with lines, 'q1-rk4.csv' using 1:6 title 'RK4' with lines, \
@@ -16,6 +18,8 @@ plot 'q1-euler.csv' using 1:6 title 'Euler' with lines, 'q1-rk4.csv' using 1:6 t
 set term epslatex color
 set output 'q1b-error-cputime.tex'
 set size 5/4., 4/3.
+set xlabel 'Time'
+set ylabel 'Error'
 set log y
 plot [0:60] 'q1-euler.csv' using 1:6 title 'Euler' with lines, 'q1-rk4.csv' using 1:6 title 'RK4' with lines,\
 'q1-bs.csv' using 1:6 title 'Bulirsch-Stoer' with lines
