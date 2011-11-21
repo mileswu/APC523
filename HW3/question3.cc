@@ -67,7 +67,7 @@ double energy(vector<double> &x, vector<double> &y, vector<double> &z, vector<do
 }
 
 int main(int argc, char **argv) {
-	int no = 800;
+	int no = 100;
 	double timestep;
 	vector<double> x(no);
 	vector<double> y(no);
@@ -77,6 +77,7 @@ int main(int argc, char **argv) {
 	vector<double> v_z(no);
 	
 	timestep = 0.0001;
+	timestep = 0.01;
 	srand(31231);
 
 	for(int i=0; i<no; i++) {
@@ -88,7 +89,13 @@ int main(int argc, char **argv) {
 
 
 	ofstream f, energy_f;
-	//energy_f.open("q3/q3-energy.csv");
+	energy_f.open("q3/q3-energy.csv");
+	f.open("q3/q3_0.csv");
+	for(int i=0; i<no; i++) {
+		f << x[i] << " " << y[i] << " " << z[i] << endl;
+	}
+	f.close();
+	
 	int n = 0;
 	for(double t=0; t<=10; t+=timestep) {
 		/*stringstream ss;
@@ -98,14 +105,20 @@ int main(int argc, char **argv) {
 		for(int i=0; i<no; i++) {
 			f << x[i] << " " << y[i] << " " << z[i] << endl;
 		}
+		*/
 		energy_f << t << " " << energy(x, y, z, v_x, v_y, v_z) << endl;
-		f.close();*/
+		f.close();
 
 		leapfrog_iterate(x, y, z, v_x, v_y, v_z, timestep);
 		n++;
 	}
-	//energy_f.close();
+	energy_f.close();
 
+	f.open("q3/q3_1.csv");
+	for(int i=0; i<no; i++) {
+		f << x[i] << " " << y[i] << " " << z[i] << endl;
+	}
+	f.close();
 
 
 	return 0;
