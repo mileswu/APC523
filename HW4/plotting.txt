@@ -1,0 +1,11 @@
+set xlabel 'x'
+set ylabel 'u(x)'
+plot 'singlegrid_n_20.csv' using 1:2 with lines title '20 iterations', \
+'singlegrid_n_100.csv' using 1:2 with lines title '100 iterations', \
+'singlegrid_n_1000.csv' using 1:2 with lines title '1000 iterations', \
+'singlegrid_n_10000.csv' using 1:2 with lines title '10000 iterations', \
+'singlegrid_n_50000.csv' using 1:2 with lines title '50000 iterations', \
+1+12*x-10*x*x+0.5*sin(20*3.141592654*x*x*x) title 'Analytic solution'
+
+
+
