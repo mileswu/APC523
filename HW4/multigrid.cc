@@ -9,7 +9,7 @@ using namespace std;
 #include <cmath>
 #define N 255
 #define PI 3.141592654
-#define ITER 20
+#define ITER 10
 
 Matrix finitediff_matrix() {
 	Matrix m(N+2, N+2);
@@ -96,7 +96,7 @@ void multigrid(Matrix& a, Matrix& last, Matrix& rhs) {
 		jacobi_iteration(a, last, rhs);
 	}
 
-	if(level > 3) {
+	if(level > 2) {
 		// Residual
 		Matrix t(n, 1);
 		for(int i=1; i<n-1; i++) {
@@ -111,9 +111,8 @@ void multigrid(Matrix& a, Matrix& last, Matrix& rhs) {
 		// Coarsen residual
 		Matrix t_coarse(n_coarse,1);
 		for(int i=0; i<n_coarse; i++) 
-			t_coarse(i, 0) = t(2*i, 0)/4.0 + t(2*i + 1, 0)/2.0 + t(2*i + 2, 0)/4.0;
-			//t_coarse(i, 0) = t(2*i + 1, 0);
-		cout << "t_coarse(0) = " << t_coarse(0, 0) << endl;
+			//t_coarse(i, 0) = t(2*i, 0)/4.0 + t(2*i + 1, 0)/2.0 + t(2*i + 2, 0)/4.0;
+			t_coarse(i, 0) = t(2*i, 0);
 
 		// New E
 		Matrix e(n_coarse,1);
@@ -140,8 +139,6 @@ void multigrid(Matrix& a, Matrix& last, Matrix& rhs) {
 				e_interpolate(i, 0) = e(i/2, 0)*0.5 + e(i/2 + 1, 0)*0.5;
 			
 		}
-		cout << "e_interp(0) = " << e_interpolate(0, 0) << endl;
-
 
 		// Subtraction
 		for(int i=1; i<n-1; i++) {
