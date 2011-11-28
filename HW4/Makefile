@@ -2,10 +2,10 @@ CXXFLAGS = -g -Wall -O2
 
 all: singlegrid multigrid
 
-singlegrid: singlegrid.o matrix.o
+singlegrid: singlegrid.o matrix.o jacobi.o
 	$(CXX) -o $@ $^
 
-multigrid: multigrid.o matrix.o
+multigrid: multigrid.o matrix.o jacobi.o
 	$(CXX) -o $@ $^
 
 clean:
