@@ -28,7 +28,7 @@ void lf(vector<double> &grid) {
 void upwind(vector<double> &grid) {
 	vector<double> oldgrid(grid);
 
-	grid[0] = 0.5*CFL*(oldgrid[N] + oldgrid[1]) - 0.5*CFL*(oldgrid[1] - oldgrid[N]);
+	grid[0] += 0.5*CFL*(oldgrid[N] -2.0*oldgrid[0] + oldgrid[1]) - 0.5*CFL*(oldgrid[1] - oldgrid[N]);
 	grid[N+1] = grid[0];
 
 	for(int i=1; i<N+1; i++) {
@@ -39,7 +39,7 @@ void upwind(vector<double> &grid) {
 void lw(vector<double> &grid) {
 	vector<double> oldgrid(grid);
 
-	grid[0] = 0.5*CFL*CFL*(oldgrid[N] + oldgrid[1]) - 0.5*CFL*(oldgrid[1] - oldgrid[N]);
+	grid[0] += 0.5*CFL*CFL*(oldgrid[N] -2.0*oldgrid[0] + oldgrid[1]) - 0.5*CFL*(oldgrid[1] - oldgrid[N]);
 	grid[N+1] = grid[0];
 
 	for(int i=1; i<N+1; i++) {
