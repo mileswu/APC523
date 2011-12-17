@@ -20,7 +20,7 @@ int logbase2(int n) {
 void multigrid(Matrix& a, Matrix& last, Matrix& rhs) {
 	int n = a.cols;
 	int level = logbase2(n-1);
-	int n_coarse = pow(2, level-1) +1;
+	int n_coarse = pow((double)2.0, level-1) +1;
 
 	for(int i=0; i<ITER; i++) {
 		jacobi_iteration(a, last, rhs);
