@@ -80,14 +80,13 @@ int main() {
 		for(t=timestep; t < 1; t += timestep)
 			lf(grid, n, cfl);
 		
+		// Find new CFL for last iteration to make the timestep make it exactly t=1
 		t-=timestep;
 		double leftover = 1.0 - t;
 		double tempcfl = A*leftover/dx;
 		
 		lf(grid, n, tempcfl);
-
 		l1_lf = l1error(grid, grid_t0);
-
 		
 		init(grid, n);
 		for(t=timestep; t < 1; t += timestep)
@@ -100,14 +99,7 @@ int main() {
 			lw(grid, n, cfl);
 		}
 		lw(grid, n, tempcfl);
-	
 		l1_lw = l1error(grid, grid_t0);
-
-		ofstream f;
-		f.open("q2a.csv");
-		for(int j=0; j<n+2; j++)
-			f << getx(j, n) << " " << grid_t0[j] << endl;
-		f.close();
 
 		cout << n << " " << l1_lf << " " << l1_upwind << " " << l1_lw << endl;
 	}
