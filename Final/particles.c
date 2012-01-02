@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <png.h>
+#include <math.h>
 
 typedef struct {
 	double x;
@@ -14,35 +15,75 @@ typedef struct {
 	double mass;
 } particle;
 
-void output_image(particle *ps);
+void output_image(particle *ps, int num_particles);
 
-void main() {
-	particle* ps = malloc(sizeof(particle)*1024);
-	
-	int i;
-	for(i=0; i<1024; i++) {
-		ps[i].x = ((double)rand()) / ((double)RAND_MAX);
-		ps[i].y = ((double)rand()) / ((double)RAND_MAX);
-		ps[i].z = ((double)rand()) / ((double)RAND_MAX);
-	}
-
-	output_image(ps);
+double rand01() {
+		return ((double)rand()) / ((double)RAND_MAX);
 }
 
-void output_image(particle *ps) {
-	int width = 1024;
-	int height = 1024;
+double gaussian() {
+	double u1 = rand01();
+	double u2 = rand01();
+	return (sqrt(-2.0*log(u1)) * cos(2*M_PI*u2));
+}
+
+void main() {
+	particle* ps = malloc(sizeof(particle)*102400);
+	
+	int i;
+	for(i=0; i<102400; i++) {
+		ps[i].x = gaussian()/3;
+		ps[i].y = gaussian()/3;
+		ps[i].z = gaussian()/3;
+	}
+
+	output_image(ps, 102400);
+}
+
+void output_image(particle *ps, int num_particles) {
+	int width = 102;
+	int height = 102;
+	int i, j;
+	
+	double x_min=-2, x_max=2, y_min=-2, y_max = 2;
+
+	int *counters[height];
+	for(i=0; i<height; i++) {
+		counters[i]=(int *)malloc(sizeof(int) * width);
+		for(j=0; j<width; j++)
+			counters[i][j] = 0;
+	}
+
+	double binsize_x = (x_max - x_min)/((double)width);
+	double binsize_y = (y_max - y_min)/((double)height);
+	for(i=0; i<num_particles; i++) {
+		if(ps[i].x < x_min || ps[i].x > x_max)
+			continue;
+		if(ps[i].y < y_min || ps[i].y > y_max)
+			continue;
+		int xbin = (ps[i].x - x_min)/binsize_x;
+		int ybin = (ps[i].y - y_min)/binsize_y;
+		counters[ybin][xbin]++;
+	}
+	
+	int max_in_one_bin=0;
+	for(i=0; i<height; i++) {
+		for(j=0; j<width; j++)
+			if(counters[i][j] > max_in_one_bin)
+				max_in_one_bin = counters[i][j];
+	}
+
+	// Image stuff
 	int bit_depth = 8;
 	png_byte color_type = PNG_COLOR_TYPE_RGB;
 
 	png_byte *row_pointers[height];
-	int i;
 	for(i=0; i<height; i++) {
 		char *row = (char *)malloc(sizeof(char)*width*3);
 		
 		int j;
 		for(j=0; j<width; j++) {
-			row[j*3] = 255; //r
+			row[j*3] = counters[i][j]*255/max_in_one_bin;
 			row[j*3+1] = 0; //g
 			row[j*3+2] = 0; //b
 		}
@@ -99,5 +140,11 @@ void output_image(particle *ps) {
 	png_write_end(png_ptr, NULL);
 
 	fclose(fp);
+
+	/* Free memory usage */
+	for(i=0; i<height; i++) {
+		free(row_pointers[i]);
+	}
+
 	return;
 }
