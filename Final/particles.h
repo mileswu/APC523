@@ -12,3 +12,4 @@ typedef struct {
 } particle;
 
 void output_image(particle *ps, int num_particles);
+void randomize_particles(particle *ps, int size);

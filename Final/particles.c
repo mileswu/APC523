@@ -14,20 +14,14 @@ double gaussian() {
 	return (sqrt(-2.0*log(u1)) * cos(2*M_PI*u2));
 }
 
-/*
-void main() {
-	particle* ps = malloc(sizeof(particle)*102400);
-	
+void randomize_particles(particle *ps, int size) {
 	int i;
 	for(i=0; i<102400; i++) {
 		ps[i].x = gaussian()/3;
 		ps[i].y = gaussian()/3;
 		ps[i].z = gaussian()/3;
 	}
-
-	output_image(ps, 102400);
 }
-*/
 
 void output_image(particle *ps, int num_particles) {
 	int width = 102;
