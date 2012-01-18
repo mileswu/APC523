@@ -2,20 +2,7 @@
 #include <stdlib.h>
 #include <png.h>
 #include <math.h>
-
-typedef struct {
-	double x;
-	double y;
-	double z;
-
-	double v_x;
-	double v_y;
-	double v_z;
-
-	double mass;
-} particle;
-
-void output_image(particle *ps, int num_particles);
+#include "particles.h"
 
 double rand01() {
 		return ((double)rand()) / ((double)RAND_MAX);
@@ -27,6 +14,7 @@ double gaussian() {
 	return (sqrt(-2.0*log(u1)) * cos(2*M_PI*u2));
 }
 
+/*
 void main() {
 	particle* ps = malloc(sizeof(particle)*102400);
 	
@@ -39,6 +27,7 @@ void main() {
 
 	output_image(ps, 102400);
 }
+*/
 
 void output_image(particle *ps, int num_particles) {
 	int width = 102;

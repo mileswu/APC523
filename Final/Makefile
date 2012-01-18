@@ -1,8 +1,8 @@
 CFLAGS = -g -Wall -O2
 
-all: particles
+all: nbody
 
-particles: particles.o
+nbody: particles.o tree.o nbody.o
 	$(CC) -o $@ $^ -lpng
 
 clean:
