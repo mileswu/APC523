@@ -1,9 +1,9 @@
-CFLAGS = -g -Wall -O2
+CFLAGS = -g -Wall
 
 all: nbody
 
 nbody: particles.o tree.o nbody.o
-	$(CC) -o $@ $^ -lpng
+	$(CC) $(CFLAGS) -o $@ $^ -lpng
 
 clean:
 	$(RM) *.o
