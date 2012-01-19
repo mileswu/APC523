@@ -48,10 +48,25 @@ double median(particle **ps, int size, int dimension) {
 }
 
 tree *build_tree(particle **ps, int size, int depth) {
+	tree *t = malloc(sizeof(tree));
+	if(size == 1) {
+		t->p = ps[0];
+		t->dimension = LEAF;
+		return t;
+	}
+
 	int dimension = depth%K;
-	
+	// this qsorts too
 	double med = median(ps, size, dimension);
+	
+	particle **left, **right;
+	left = ps;
+	right = ps + size/2;
 
-	printf("Median %f\n", med); 
+	t->dimension = dimension;
+	t->boundary = med;
+	t->left = build_tree(left, size/2, depth+1);
+	t->right = build_tree(right, size/2, depth+1);
 
+	return(t);
 }

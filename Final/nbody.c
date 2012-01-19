@@ -4,10 +4,10 @@
 
 particle *test_particle() {
 	particle *ps = malloc(sizeof(particle)*4);
-	ps[0].x = 0;
-	ps[1].x = 1;
-	ps[2].x = 2;
-	ps[3].x = 3;
+	ps[0].x = 0; ps[0].y = 1;
+	ps[1].x = 1; ps[1].y = 2;
+	ps[2].x = 2; ps[2].y = 0;
+	ps[3].x = 3; ps[3].y = 4;
 	
 	return(ps);
 }
@@ -22,7 +22,8 @@ int main() {
 		tree_copy[i] = ps + i;
 	}
 
-	build_tree(tree_copy, size, 0);
+	tree *root;
+	root = build_tree(tree_copy, size, 0);
 
 	return(0);
 }
