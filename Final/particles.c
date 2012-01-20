@@ -271,12 +271,16 @@ void output_image(char *f, particle *ps, int num_particles, tree *root) {
 		exit(1);
 	}
 	png_write_end(png_ptr, NULL);
+	png_destroy_write_struct(&png_ptr, &info_ptr);
 
 	fclose(fp);
 
 	/* Free memory usage */
 	for(i=0; i<height; i++) {
+
+
 		free(row_pointers[i]);
+		free(counters[i]);
 	}
 
 	return;

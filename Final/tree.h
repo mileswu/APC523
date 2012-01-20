@@ -27,3 +27,4 @@ struct tree {
 typedef struct tree tree;
 
 tree *build_tree(struct particle **ps, int size, int depth);
+void free_tree(tree *t);

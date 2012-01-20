@@ -105,6 +105,7 @@ int main() {
 	tree *root;
 
 	double t = 0, timestep = 0.0005, t_max = 0.03;
+	t_max = 0.0001;
 	timestep = 0.0001;
 	int counter = 0;
 	char *output_filename = malloc(sizeof(char)*1000);
@@ -126,6 +127,7 @@ int main() {
 
 		calc_counter = 0;
 		iterate(timestep, &t, ps, size, root);
+		free_tree(root);
 		counter++;
 		
 		gettimeofday(&tv3, NULL);
@@ -134,6 +136,11 @@ int main() {
 		printf("t - %f, calc eff:(%d)%f [o:%f c:%f]\n", t, calc_counter, (double)calc_counter/(double)(size*size), dt1, dt2);
 
 	}
+
+	free(output_filename);
+	free(tree_copy);
+	free(ps);
+
 
 	return(0);
 }

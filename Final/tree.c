@@ -95,3 +95,13 @@ tree *build_tree(particle **ps, int size, int depth) {
 
 	return(t);
 }
+
+void free_tree(tree *t) {
+	if(t->dimension != LEAF) {
+		free_tree(t->left);
+		free_tree(t->right);
+		free(t->p);
+	}
+
+	free(t);
+}
