@@ -67,6 +67,8 @@ tree *build_tree(particle **ps, int size, int depth) {
 	t->boundary = med;
 	t->left = build_tree(left, size/2, depth+1);
 	t->right = build_tree(right, size/2, depth+1);
+	t->left->above = t;
+	t->right->above = t;
 
 	return(t);
 }

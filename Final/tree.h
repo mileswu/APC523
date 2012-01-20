@@ -19,6 +19,7 @@ struct tree {
 	double boundary;
 	struct tree *left;
 	struct tree *right;
+	struct tree *above;
 };
 
 typedef struct tree tree;

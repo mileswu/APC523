@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <png.h>
 #include <math.h>
-#include "particles.h"
+#include "tree.h"
 
 double rand01() {
 		return ((double)rand()) / ((double)RAND_MAX);
@@ -23,13 +23,45 @@ void randomize_particles(particle *ps, int size) {
 	}
 }
 
-void output_image(particle *ps, int num_particles) {
+/*
+void draw_line(png_bytes **row_pointers, int dimension, double line, double linemax, double linemin, double x_min, double x_min, double y_min, double y_max, int width, int height) {
+	int i;
+	if(dimension = Z) { //can't draw this plane
+		return;
+	}
+	double binsize_x = (x_max - x_min)/((double)width);
+	double binsize_y = (y_max - y_min)/((double)height);
+	
+	if(dimension == X) { //vertical
+		int xbin = (line - x_min)/binsize_x;
+		if(xbin < 0 || xbin >= width)
+			return;
+		int xbin_min = (linemin - x_min)/binsize_x;
+		int xbin_max = (linemax - x_min)/binsize_x;
+		if(xbin_min < 0)
+			xbin_min = 0;
+		if(xbin_max >= width)
+			xbin_max = width-1;
+
+		for(i=xbin_min
+
+
+	}
+	for(i=0; i<height; i++) {
+		double y = (y_max - y_min)/(double)height*(double)i;
+			double x = (x_max - x_min)/(double)width*(double)j;
+			
+	}
+}*/
+
+void output_image(particle *ps, int num_particles/*, tree *root*/) {
 	int width = 102;
 	int height = 102;
 	int i, j;
 	
 	double x_min=-2, x_max=2, y_min=-2, y_max = 2;
 
+	// Histogram the particles
 	int *counters[height];
 	for(i=0; i<height; i++) {
 		counters[i]=(int *)malloc(sizeof(int) * width);
@@ -61,6 +93,8 @@ void output_image(particle *ps, int num_particles) {
 	png_byte color_type = PNG_COLOR_TYPE_RGB;
 
 	png_byte *row_pointers[height];
+
+	// Draw Particles
 	for(i=0; i<height; i++) {
 		char *row = (char *)malloc(sizeof(char)*width*3);
 		
@@ -73,6 +107,16 @@ void output_image(particle *ps, int num_particles) {
 
 		row_pointers[i] = (png_byte *)row;
 	}
+	
+	/*// Draw boundaries
+	tree *t = root;
+	if(root != NULL) {
+		
+		
+
+
+
+	}*/
 
 	FILE *fp = fopen("out.png", "wb");
 	if(!fp) {
