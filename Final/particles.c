@@ -90,9 +90,9 @@ void output_image(particle *ps, int num_particles, tree *root) {
 	double binsize_x = (x_max - x_min)/((double)width);
 	double binsize_y = (y_max - y_min)/((double)height);
 	for(i=0; i<num_particles; i++) {
-		if(ps[i].x < x_min || ps[i].x > x_max)
+		if(ps[i].x < x_min || ps[i].x >= x_max)
 			continue;
-		if(ps[i].y < y_min || ps[i].y > y_max)
+		if(ps[i].y < y_min || ps[i].y >= y_max)
 			continue;
 		int xbin = (ps[i].x - x_min)/binsize_x;
 		int ybin = (ps[i].y - y_min)/binsize_y;
