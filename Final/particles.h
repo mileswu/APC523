@@ -14,6 +14,7 @@ struct particle {
 	double a_z;
 
 	double mass;
+	int id;
 };
 typedef struct particle particle;
 

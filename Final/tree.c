@@ -75,7 +75,7 @@ tree *build_tree(particle **ps, int size, int depth) {
 	// Virtual particle
 	t->p = malloc(sizeof(particle));
 	int i;
-	t->p->x = 0; t->p->y = 0; t->p->z = 0;
+	t->p->x = 0; t->p->y = 0; t->p->z = 0; t->p->mass = 0;
 	for(i=0; i<size; i++) {
 		t->p->x += ps[i]->x*ps[i]->mass;
 		t->p->y += ps[i]->y*ps[i]->mass;
@@ -86,13 +86,12 @@ tree *build_tree(particle **ps, int size, int depth) {
 	t->p->y /= t->p->mass;
 	t->p->z /= t->p->mass;
 
-	double max_size = 0;
+	double mass_weighted_size = 0;
 	for(i=0; i<size; i++) {
 		double r = (ps[i]->x - t->p->x)*(ps[i]->x - t->p->x) + (ps[i]->y - t->p->y)*(ps[i]->y - t->p->y) + (ps[i]->z - t->p->z)*(ps[i]->z - t->p->z);
-		if(r > max_size)
-			max_size = r;
+		mass_weighted_size += sqrt(r)*ps[i]->mass;
 	}
-	t->size = sqrt(max_size);
+	t->size = mass_weighted_size / t->p->mass;
 
 	return(t);
 }

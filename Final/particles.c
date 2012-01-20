@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <png.h>
 #include <math.h>
+#include <assert.h>
 #include "particles.h"
 #include "tree.h"
 
@@ -15,13 +16,39 @@ double gaussian() {
 	return (sqrt(-2.0*log(u1)) * cos(2*M_PI*u2));
 }
 
+void generate_random_point_in_sphere(double *x, double *y, double *z) {
+	int i;
+	for(i=0; i<10000; i++) {
+		*x = ((double)rand())/RAND_MAX;
+		if(rand()%2 == 0)
+			*x *= -1;
+		*y = ((double)rand())/RAND_MAX;
+		if(rand()%2 == 0)
+			*y *= -1;
+		*z = ((double)rand())/RAND_MAX;
+		if(rand()%2 == 0)
+			*z *= -1;
+
+		if(*x * *x + *y * *y + *z * *z <= 1)
+			return;
+	}
+	printf("Problem generating random point in sphere\n");
+	assert(1==0);
+}
+
 void randomize_particles(particle *ps, int size) {
 	int i;
 	for(i=0; i<size; i++) {
-		ps[i].x = gaussian()/3;
+		/*ps[i].x = gaussian()/3;
 		ps[i].y = gaussian()/3;
-		ps[i].z = gaussian()/3;
+		ps[i].z = gaussian()/3;*/
+
+		generate_random_point_in_sphere(&ps[i].x, &ps[i].y, &ps[i].z);
 		ps[i].mass = 1;
+		ps[i].v_x = 0;
+		ps[i].v_y = 0;
+		ps[i].v_z = 0;
+		ps[i].id = i;
 	}
 }
 
@@ -176,11 +203,14 @@ void output_image(char *f, particle *ps, int num_particles, tree *root) {
 	}
 
 	// Draw Particles
+	max_in_one_bin = 1;
 	for(i=0; i<height; i++) {
 		int j;
 		for(j=0; j<width; j++) {
 			if(counters[i][j] == 0) continue;
-			row_pointers[i][j*3] = counters[i][j]*255/max_in_one_bin;
+			int val = counters[i][j]*255/max_in_one_bin;
+			if(val > 255) val = 255;
+			row_pointers[i][j*3] = val;
 			row_pointers[i][j*3+1] = 0; //g
 			row_pointers[i][j*3+2] = 0; //b
 		}

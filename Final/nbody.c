@@ -4,7 +4,7 @@
 #include "particles.h"
 
 #define G 1
-#define THETA 0.5
+#define THETA 0.8
 
 int calc_counter;
 
@@ -33,12 +33,18 @@ void calc_a_traverse(particle *p, tree *node) {
 	}
 
 
+
 	double common = G * node->p->mass / pow(r2, 1.5);
 	p->a_x += common*(node->p->x - p->x);
 	p->a_y += common*(node->p->y - p->y);
 	p->a_z += common*(node->p->z - p->z);
+	
+	
+	/*if(p->id == 529) {
+		printf("size %f, r %f, mass %f\n", node->size, sqrt(r2), node->p->mass);
+		printf("a_x %f a_y %f a_z %f\n", p->a_x, p->a_y, p->a_z);
+	}*/
 
-	//printf("a_x %f a_y %f a_z %f\n", p->a_x, p->a_y, p->a_z);
 	calc_counter++;
 }
 
@@ -60,6 +66,11 @@ void iterate(double timestep, double *t, particle *ps, int size, tree *root) {
 		ps[i].v_x += ps[i].a_x * timestep;
 		ps[i].v_y += ps[i].a_y * timestep;
 		ps[i].v_z += ps[i].a_z * timestep;
+
+		/*if(ps[i].a_x > 100000) {
+			printf("Errr not good (id %d)\n", ps[i].id);
+		}*/
+
 		ps[i].x += ps[i].v_x * timestep;
 		ps[i].y += ps[i].v_y * timestep;
 		ps[i].z += ps[i].v_z * timestep;
@@ -70,9 +81,13 @@ void iterate(double timestep, double *t, particle *ps, int size, tree *root) {
 
 
 int main() {
+	srand(123);
 	//particle *ps = test_particle();
 	
-	int size = 512;
+	int size = 1024*2*2*2;
+	size =4096*2;
+	printf("Size - %d\n", size);
+
 	particle *ps = malloc(sizeof(particle)*size);
 	randomize_particles(ps, size);
 
@@ -89,18 +104,25 @@ int main() {
 
 	tree *root;
 
-	double t = 0, timestep = 0.0005;
+	double t = 0, timestep = 0.0005, t_max = 0.03;
+	timestep = 0.0001;
 	int counter = 0;
 	char *output_filename = malloc(sizeof(char)*1000);
-	while(t<0.01) {
+
+	printf("Ready\n");
+	while(t<t_max) {
 		struct timeval tv1, tv2, tv3;
 		gettimeofday(&tv1, NULL);
 
+		
 		sprintf(output_filename, "out-%06d.png", counter);
 		output_image(output_filename, ps, size, NULL);
+	
 		gettimeofday(&tv2, NULL);
+		
 
 		root = build_tree(tree_copy, size, 0);
+		printf("Tree built\n");
 
 		calc_counter = 0;
 		iterate(timestep, &t, ps, size, root);
@@ -109,7 +131,8 @@ int main() {
 		gettimeofday(&tv3, NULL);
 		double dt1 = (tv2.tv_sec - tv1.tv_sec) + (tv2.tv_usec - tv1.tv_usec)/(double)1000000;
 		double dt2 = (tv3.tv_sec - tv2.tv_sec) + (tv3.tv_usec - tv2.tv_usec)/(double)1000000;
-		printf("t - %f, calc eff:%f [o:%f c:%f]\n", t, (double)calc_counter/(double)(size*size), dt1, dt2);
+		printf("t - %f, calc eff:(%d)%f [o:%f c:%f]\n", t, calc_counter, (double)calc_counter/(double)(size*size), dt1, dt2);
+
 	}
 
 	return(0);
