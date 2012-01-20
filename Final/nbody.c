@@ -3,6 +3,11 @@
 #include "tree.h"
 #include "particles.h"
 
+#define G 1
+#define THETA 0.5
+
+int calc_counter;
+
 particle *test_particle() {
 	particle *ps = malloc(sizeof(particle)*4);
 	ps[0].x = -1.7; ps[0].y = 0;
@@ -12,6 +17,57 @@ particle *test_particle() {
 	
 	return(ps);
 }
+
+void calc_a_traverse(particle *p, tree *node) {
+	double r2 = (p->x - node->p->x)*(p->x - node->p->x) + (p->y - node->p->y)*(p->y - node->p->y) + (p->z - node->p->z)*(p->z - node->p->z);
+
+	if(node->dimension != LEAF) {
+		if(node->size / sqrt(r2) > THETA) { //too close
+			calc_a_traverse(p, node->left);
+			calc_a_traverse(p, node->right);
+			return;
+		}
+	} else { //IS LEAF
+		if(p == node->p)
+			return;
+	}
+
+
+	double common = G * node->p->mass / pow(r2, 1.5);
+	p->a_x += common*(node->p->x - p->x);
+	p->a_y += common*(node->p->y - p->y);
+	p->a_z += common*(node->p->z - p->z);
+
+	//printf("a_x %f a_y %f a_z %f\n", p->a_x, p->a_y, p->a_z);
+	calc_counter++;
+}
+
+void calc_a(particle *ps, int size, tree *root) {
+	int i;
+	for(i=0; i<size; i++) {
+		ps[i].a_x = 0;
+		ps[i].a_y = 0;
+		ps[i].a_z = 0;
+		calc_a_traverse(&ps[i], root);
+	}
+}
+
+void iterate(double timestep, double *t, particle *ps, int size, tree *root) {
+	calc_a(ps, size, root);
+	int i;
+	// Euler
+	for(i=0; i<size; i++) {
+		ps[i].v_x += ps[i].a_x * timestep;
+		ps[i].v_y += ps[i].a_y * timestep;
+		ps[i].v_z += ps[i].a_z * timestep;
+		ps[i].x += ps[i].v_x * timestep;
+		ps[i].y += ps[i].v_y * timestep;
+		ps[i].z += ps[i].v_z * timestep;
+	}
+	*t += timestep;
+}
+
+
 
 int main() {
 	//particle *ps = test_particle();
@@ -32,9 +88,29 @@ int main() {
 	}
 
 	tree *root;
-	root = build_tree(tree_copy, size, 0);
 
-	output_image(ps, size, root);
+	double t = 0, timestep = 0.0005;
+	int counter = 0;
+	char *output_filename = malloc(sizeof(char)*1000);
+	while(t<0.01) {
+		struct timeval tv1, tv2, tv3;
+		gettimeofday(&tv1, NULL);
+
+		sprintf(output_filename, "out-%06d.png", counter);
+		output_image(output_filename, ps, size, NULL);
+		gettimeofday(&tv2, NULL);
+
+		root = build_tree(tree_copy, size, 0);
+
+		calc_counter = 0;
+		iterate(timestep, &t, ps, size, root);
+		counter++;
+		
+		gettimeofday(&tv3, NULL);
+		double dt1 = (tv2.tv_sec - tv1.tv_sec) + (tv2.tv_usec - tv1.tv_usec)/(double)1000000;
+		double dt2 = (tv3.tv_sec - tv2.tv_sec) + (tv3.tv_usec - tv2.tv_usec)/(double)1000000;
+		printf("t - %f, calc eff:%f [o:%f c:%f]\n", t, (double)calc_counter/(double)(size*size), dt1, dt2);
+	}
 
 	return(0);
 }

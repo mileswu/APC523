@@ -21,6 +21,7 @@ void randomize_particles(particle *ps, int size) {
 		ps[i].x = gaussian()/3;
 		ps[i].y = gaussian()/3;
 		ps[i].z = gaussian()/3;
+		ps[i].mass = 1;
 	}
 }
 
@@ -117,7 +118,7 @@ void draw_boundaries(png_byte **row_pointers, tree *root, double linex_min, doub
 
 }
 
-void output_image(particle *ps, int num_particles, tree *root) {
+void output_image(char *f, particle *ps, int num_particles, tree *root) {
 	int width = 1000;
 	int height = 1000;
 	int i, j;
@@ -193,7 +194,7 @@ void output_image(particle *ps, int num_particles, tree *root) {
 	for(i=0; i<height; i++)
 		row_pointers[i] = row_pointers_flip[i];
 
-	FILE *fp = fopen("out.png", "wb");
+	FILE *fp = fopen(f, "wb");
 	if(!fp) {
 		printf("There was an error. fopen failed\n");
 		exit(1);

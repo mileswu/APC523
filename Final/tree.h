@@ -13,7 +13,7 @@ struct particle;
 
 struct tree {
 	// Info about this node
-	
+	double size;	
 	struct particle *p;
 
 	// Children (if applicable)
@@ -26,4 +26,4 @@ struct tree {
 
 typedef struct tree tree;
 
-
+tree *build_tree(struct particle **ps, int size, int depth);
