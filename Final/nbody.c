@@ -50,6 +50,7 @@ void calc_a_traverse(particle *p, tree *node) {
 
 void calc_a(particle *ps, int size, tree *root) {
 	int i;
+	#pragma omp parallel for private(i)
 	for(i=0; i<size; i++) {
 		ps[i].a_x = 0;
 		ps[i].a_y = 0;
@@ -85,7 +86,7 @@ int main() {
 	//particle *ps = test_particle();
 	
 	int size = 1024*2*2*2;
-	size =4096*2;
+	size =4096*2*2;
 	printf("Size - %d\n", size);
 
 	particle *ps = malloc(sizeof(particle)*size);
@@ -105,14 +106,13 @@ int main() {
 	tree *root;
 
 	double t = 0, timestep = 0.0005, t_max = 0.03;
-	t_max = 0.0001;
-	timestep = 0.0001;
+	timestep = 0.00005;
 	int counter = 0;
 	char *output_filename = malloc(sizeof(char)*1000);
 
 	printf("Ready\n");
 	while(t<t_max) {
-		struct timeval tv1, tv2, tv3;
+		struct timeval tv1, tv2, tv3, tv4;
 		gettimeofday(&tv1, NULL);
 
 		
@@ -123,17 +123,20 @@ int main() {
 		
 
 		root = build_tree(tree_copy, size, 0);
+		gettimeofday(&tv3, NULL);
 		printf("Tree built\n");
 
 		calc_counter = 0;
 		iterate(timestep, &t, ps, size, root);
+		gettimeofday(&tv4, NULL);
+
 		free_tree(root);
 		counter++;
 		
-		gettimeofday(&tv3, NULL);
 		double dt1 = (tv2.tv_sec - tv1.tv_sec) + (tv2.tv_usec - tv1.tv_usec)/(double)1000000;
 		double dt2 = (tv3.tv_sec - tv2.tv_sec) + (tv3.tv_usec - tv2.tv_usec)/(double)1000000;
-		printf("t - %f, calc eff:(%d)%f [o:%f c:%f]\n", t, calc_counter, (double)calc_counter/(double)(size*size), dt1, dt2);
+		double dt3 = (tv4.tv_sec - tv3.tv_sec) + (tv4.tv_usec - tv3.tv_usec)/(double)1000000;
+		printf("t - %f, calc eff:(%d)%f [o:%f t:%f c:%f]\n", t, calc_counter, (double)calc_counter/(double)(size*size), dt1, dt2, dt3);
 
 	}
 
