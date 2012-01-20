@@ -59,17 +59,23 @@ tree *build_tree(particle **ps, int size, int depth) {
 	int dimension = depth%K;
 	// this qsorts too
 	double med = median(ps, size, dimension);
+	printf("Med: %f\n", med);
 	
 	particle **left, **right;
 	left = ps;
 	right = ps + size/2;
 
+	// Tree building
 	t->dimension = dimension;
 	t->boundary = med;
 	t->left = build_tree(left, size/2, depth+1);
 	t->right = build_tree(right, size/2, depth+1);
 	t->left->above = t;
 	t->right->above = t;
+
+	// Make info about this node
+	
+	
 
 	return(t);
 }
