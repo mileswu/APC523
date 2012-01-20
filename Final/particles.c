@@ -25,7 +25,7 @@ void randomize_particles(particle *ps, int size) {
 }
 
 
-void draw_line(png_byte **row_pointers, int dimension, double line, double linemax, double linemin, double x_min, double x_max, double y_min, double y_max, int width, int height) {
+void draw_line(png_byte **row_pointers, int dimension, double line, double linemin, double linemax, double x_min, double x_max, double y_min, double y_max, int width, int height) {
 	//Line is the boundary line value
 	//Linemin/max is the ones that constrain it in the 2d plane
 	
@@ -40,7 +40,7 @@ void draw_line(png_byte **row_pointers, int dimension, double line, double linem
 		int xbin = (line - x_min)/binsize_x;
 		if(xbin < 0 || xbin >= width)
 			return;
-		int ybin_min = (linemin - y_min)/binsize_x;
+		int ybin_min = (linemin - y_min)/binsize_y;
 		int ybin_max = (linemax - y_min)/binsize_y;
 		if(ybin_min < 0)
 			ybin_min = 0;
@@ -70,6 +70,66 @@ void draw_line(png_byte **row_pointers, int dimension, double line, double linem
 			row_pointers[ybin][i*3+2] = 255;
 		}
 	}
+}
+
+void draw_boundaries(png_byte **row_pointers, tree *root, double x_min, double x_max, double y_min, double y_max, int width, int height) {
+	int dimension = root->dimension;
+	if(dimension == LEAF) return;
+
+	double boundary = root->boundary;
+	double linemin, linemax;
+
+	if(dimension == Y) { //only up one
+		if(root->above) {
+			tree *firstlim = root->above;
+			linemin = firstlim->boundary;
+			if(firstlim->above && firstlim->above->above && firstlim->above->above->above)
+				linemax = firstlim->above->above->above->boundary;
+			else
+				if(firstlim->left == root)
+					linemax = x_min;
+				else
+					linemax = x_max;
+		}
+		else {
+			linemin = x_min;
+			linemax = x_max;
+		}
+	}
+	else if(dimension == X) {
+		if(root->above && root->above->above) {
+			tree *firstlim = root->above->above;
+			linemin = firstlim->boundary;
+			if(firstlim->above && firstlim->above->above && firstlim->above->above->above)
+				linemax = firstlim->above->above->above->boundary;
+			else
+				if(firstlim->left == root)
+					linemax = y_min;
+				else
+					linemax = y_max;
+		}
+		else {
+			linemin = y_min;
+			linemax = y_max;
+		}
+	}
+
+	if(dimension == X || dimension == Y) {
+		if(linemin > linemax) { //Flip to make sure order
+			double temp = linemin;
+			linemin = linemax;
+			linemax = temp;
+		}
+		
+		printf("Boundary[%d]: boundary=%f linemin=%f linemax=%f\n", dimension, boundary, linemin, linemax);
+	
+		draw_line(row_pointers, dimension, boundary, linemin, linemax, x_min, x_max, y_min, y_max, width, height);
+	}
+
+	draw_boundaries(row_pointers, root->left, x_min, x_max, y_min, y_max, width, height);
+	draw_boundaries(row_pointers, root->right, x_min, x_max, y_min, y_max, width, height);
+
+
 }
 
 void output_image(particle *ps, int num_particles, tree *root) {
@@ -129,7 +189,7 @@ void output_image(particle *ps, int num_particles, tree *root) {
 	// Draw boundaries
 	tree *t = root;
 	if(root != NULL) {
-		draw_line(row_pointers, X, 0.0, 2.0, -2.0, x_min, x_max, y_min, y_max, width, height);
+		draw_boundaries(row_pointers, t, x_min, x_max, y_min, y_max, width, height);
 	}
 	
 	// Flip image vertically
