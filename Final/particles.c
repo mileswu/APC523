@@ -125,12 +125,19 @@ void output_image(particle *ps, int num_particles, tree *root) {
 
 		row_pointers[i] = (png_byte *)row;
 	}
-	
+
 	// Draw boundaries
 	tree *t = root;
 	if(root != NULL) {
 		draw_line(row_pointers, X, 0.0, 2.0, -2.0, x_min, x_max, y_min, y_max, width, height);
 	}
+	
+	// Flip image vertically
+	png_byte *row_pointers_flip[height];
+	for(i=0; i<height; i++)
+		row_pointers_flip[i] = row_pointers[height - i - 1];
+	for(i=0; i<height; i++)
+		row_pointers[i] = row_pointers_flip[i];
 
 	FILE *fp = fopen("out.png", "wb");
 	if(!fp) {
