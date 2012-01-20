@@ -1,4 +1,4 @@
-#include "particles.h"
+#pragma once
 
 #define X 0
 #define Y 1 
@@ -9,10 +9,12 @@
 #define TRUE 1
 #define FALSE 0
 
+struct particle;
+
 struct tree {
 	// Info about this node
 	
-	particle *p;
+	struct particle *p;
 
 	// Children (if applicable)
 	int dimension;

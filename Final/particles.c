@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <png.h>
 #include <math.h>
+#include "particles.h"
 #include "tree.h"
 
 double rand01() {
@@ -23,10 +24,13 @@ void randomize_particles(particle *ps, int size) {
 	}
 }
 
-/*
-void draw_line(png_bytes **row_pointers, int dimension, double line, double linemax, double linemin, double x_min, double x_min, double y_min, double y_max, int width, int height) {
+
+void draw_line(png_byte **row_pointers, int dimension, double line, double linemax, double linemin, double x_min, double x_max, double y_min, double y_max, int width, int height) {
+	//Line is the boundary line value
+	//Linemin/max is the ones that constrain it in the 2d plane
+	
 	int i;
-	if(dimension = Z) { //can't draw this plane
+	if(dimension == Z) { //can't draw this plane
 		return;
 	}
 	double binsize_x = (x_max - x_min)/((double)width);
@@ -36,6 +40,23 @@ void draw_line(png_bytes **row_pointers, int dimension, double line, double line
 		int xbin = (line - x_min)/binsize_x;
 		if(xbin < 0 || xbin >= width)
 			return;
+		int ybin_min = (linemin - y_min)/binsize_x;
+		int ybin_max = (linemax - y_min)/binsize_y;
+		if(ybin_min < 0)
+			ybin_min = 0;
+		if(ybin_max >= height)
+			ybin_max = height-1;
+
+		for(i=ybin_min; i<=ybin_max; i++) {
+			row_pointers[i][xbin*3] = 255;
+			row_pointers[i][xbin*3+1] = 255;
+			row_pointers[i][xbin*3+2] = 255;
+		}
+	}
+	else { //horizontal
+		int ybin = (line - y_min)/binsize_y;
+		if(ybin < 0 || ybin >= height)
+			return;
 		int xbin_min = (linemin - x_min)/binsize_x;
 		int xbin_max = (linemax - x_min)/binsize_x;
 		if(xbin_min < 0)
@@ -43,18 +64,15 @@ void draw_line(png_bytes **row_pointers, int dimension, double line, double line
 		if(xbin_max >= width)
 			xbin_max = width-1;
 
-		for(i=xbin_min
-
-
+		for(i=xbin_min; i<=xbin_max; i++) {
+			row_pointers[ybin][i*3] = 255;
+			row_pointers[ybin][i*3+1] = 255;
+			row_pointers[ybin][i*3+2] = 255;
+		}
 	}
-	for(i=0; i<height; i++) {
-		double y = (y_max - y_min)/(double)height*(double)i;
-			double x = (x_max - x_min)/(double)width*(double)j;
-			
-	}
-}*/
+}
 
-void output_image(particle *ps, int num_particles/*, tree *root*/) {
+void output_image(particle *ps, int num_particles, tree *root) {
 	int width = 102;
 	int height = 102;
 	int i, j;
@@ -108,15 +126,11 @@ void output_image(particle *ps, int num_particles/*, tree *root*/) {
 		row_pointers[i] = (png_byte *)row;
 	}
 	
-	/*// Draw boundaries
+	// Draw boundaries
 	tree *t = root;
 	if(root != NULL) {
-		
-		
-
-
-
-	}*/
+		draw_line(row_pointers, X, 0.0, 2.0, -2.0, x_min, x_max, y_min, y_max, width, height);
+	}
 
 	FILE *fp = fopen("out.png", "wb");
 	if(!fp) {

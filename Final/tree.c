@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "tree.h"
+#include "particles.h"
 
 // BSD: has arg before a,b
 int median_qsort(void *a, void *b, void *dimension) {

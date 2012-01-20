@@ -1,3 +1,4 @@
+struct tree;
 
 typedef struct {
 	double x;
@@ -11,5 +12,5 @@ typedef struct {
 	double mass;
 } particle;
 
-void output_image(particle *ps, int num_particles);
+void output_image(particle *ps, int num_particles, struct tree *root);
 void randomize_particles(particle *ps, int size);

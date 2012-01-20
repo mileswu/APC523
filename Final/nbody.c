@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "tree.h"
+#include "particles.h"
 
 particle *test_particle() {
 	particle *ps = malloc(sizeof(particle)*4);
@@ -24,6 +25,8 @@ int main() {
 
 	tree *root;
 	root = build_tree(tree_copy, size, 0);
+
+	output_image(ps, size, root);
 
 	return(0);
 }
