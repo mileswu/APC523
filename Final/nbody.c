@@ -5,6 +5,7 @@
 
 #define G 1
 #define THETA 0.8
+#define EPSILON 0.1
 
 int calc_counter;
 
@@ -34,7 +35,7 @@ void calc_a_traverse(particle *p, tree *node) {
 
 
 
-	double common = G * node->p->mass / pow(r2, 1.5);
+	double common = G * node->p->mass / ((r2 + EPSILON*EPSILON) * sqrt(r2));
 	p->a_x += common*(node->p->x - p->x);
 	p->a_y += common*(node->p->y - p->y);
 	p->a_z += common*(node->p->z - p->z);
@@ -105,8 +106,8 @@ int main() {
 
 	tree *root;
 
-	double t = 0, timestep = 0.0005, t_max = 0.03;
-	timestep = 0.00005;
+	double t = 0, timestep = 0.0005, t_max = 0.1;
+	timestep = 0.0002;
 	int counter = 0;
 	char *output_filename = malloc(sizeof(char)*1000);
 
@@ -124,7 +125,6 @@ int main() {
 
 		root = build_tree(tree_copy, size, 0);
 		gettimeofday(&tv3, NULL);
-		printf("Tree built\n");
 
 		calc_counter = 0;
 		iterate(timestep, &t, ps, size, root);

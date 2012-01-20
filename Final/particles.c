@@ -39,11 +39,20 @@ void generate_random_point_in_sphere(double *x, double *y, double *z) {
 void randomize_particles(particle *ps, int size) {
 	int i;
 	for(i=0; i<size; i++) {
-		/*ps[i].x = gaussian()/3;
-		ps[i].y = gaussian()/3;
-		ps[i].z = gaussian()/3;*/
+		if(rand()%2)
+			ps[i].x = gaussian()/2 - 1;
+		else	
+			ps[i].x = gaussian()/2 + 1;
+		ps[i].y = gaussian()/2;
+		ps[i].z = gaussian()/2;
 
-		generate_random_point_in_sphere(&ps[i].x, &ps[i].y, &ps[i].z);
+		//generate_random_point_in_sphere(&ps[i].x, &ps[i].y, &ps[i].z);
+
+		/*double multi=50;
+		ps[i].x *= multi;
+		ps[i].y *= multi;
+		ps[i].z *= multi;*/
+
 		ps[i].mass = 1;
 		ps[i].v_x = 0;
 		ps[i].v_y = 0;
