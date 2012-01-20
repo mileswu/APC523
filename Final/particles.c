@@ -17,7 +17,7 @@ double gaussian() {
 
 void randomize_particles(particle *ps, int size) {
 	int i;
-	for(i=0; i<102400; i++) {
+	for(i=0; i<size; i++) {
 		ps[i].x = gaussian()/3;
 		ps[i].y = gaussian()/3;
 		ps[i].z = gaussian()/3;
@@ -103,7 +103,7 @@ void draw_boundaries(png_byte **row_pointers, tree *root, double x_min, double x
 			if(firstlim->above && firstlim->above->above && firstlim->above->above->above)
 				linemax = firstlim->above->above->above->boundary;
 			else
-				if(firstlim->left == root)
+				if(firstlim->left->left == root || firstlim->left->right == root)
 					linemax = y_min;
 				else
 					linemax = y_max;
@@ -133,8 +133,8 @@ void draw_boundaries(png_byte **row_pointers, tree *root, double x_min, double x
 }
 
 void output_image(particle *ps, int num_particles, tree *root) {
-	int width = 102;
-	int height = 102;
+	int width = 402;
+	int height = 402;
 	int i, j;
 	
 	double x_min=-2, x_max=2, y_min=-2, y_max = 2;
