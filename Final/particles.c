@@ -19,13 +19,13 @@ double gaussian() {
 void generate_random_point_in_sphere(double *x, double *y, double *z) {
 	int i;
 	for(i=0; i<10000; i++) {
-		*x = ((double)rand())/RAND_MAX;
+		*x = rand01();
 		if(rand()%2 == 0)
 			*x *= -1;
-		*y = ((double)rand())/RAND_MAX;
+		*y = rand01();
 		if(rand()%2 == 0)
 			*y *= -1;
-		*z = ((double)rand())/RAND_MAX;
+		*z = rand01();
 		if(rand()%2 == 0)
 			*z *= -1;
 
@@ -36,15 +36,52 @@ void generate_random_point_in_sphere(double *x, double *y, double *z) {
 	assert(1==0);
 }
 
-void randomize_particles(particle *ps, int size) {
+void generate_two_body(particle *ps, int size) {
+	ps[0].v_x = 0;
+	ps[0].v_y = 0;
+	ps[0].v_z = 0;
+	ps[0].x = 0;
+	ps[0].y = 0;
+	ps[0].z = 0;
+	ps[0].mass = 100;
+
+	ps[1].x = 1;
+	ps[1].y = 0;
+	ps[1].z = 0;
+	ps[1].v_x = 0;
+	ps[1].v_y = 10;
+	ps[1].v_z = 0;
+	ps[1].mass = 1;
+}
+
+void randomize_uniform_sphere(particle *ps, int size) {
 	int i;
 	for(i=0; i<size; i++) {
-		if(rand()%2)
+		generate_random_point_in_sphere(&ps[i].x, &ps[i].y, &ps[i].z);
+		
+		ps[i].v_x = 0;
+		ps[i].v_y = 0;
+		ps[i].v_z = 0;
+		ps[i].id = i;
+
+		double multi=1;
+		ps[i].x *= multi;
+		ps[i].y *= multi;
+		ps[i].z *= multi;
+
+		ps[i].mass = 1;
+	}
+}
+
+void randomize_particles(particle *ps, int size) {
+	int i;
+	for(i=0; i<size-150; i++) {
+		/*if(rand()%2)
 			ps[i].x = gaussian()/2 - 1;
 		else	
 			ps[i].x = gaussian()/2 + 1;
 		ps[i].y = gaussian()/2;
-		ps[i].z = gaussian()/2;
+		ps[i].z = gaussian()/2;*/
 
 		//generate_random_point_in_sphere(&ps[i].x, &ps[i].y, &ps[i].z);
 
@@ -52,17 +89,89 @@ void randomize_particles(particle *ps, int size) {
 		ps[i].x *= multi;
 		ps[i].y *= multi;
 		ps[i].z *= multi;*/
+		
+		double a = 0.35;
+		double windings = 25;
+		double t_max = M_PI_2*windings;
+		double b = log(2.0/a)/t_max;
+		double drift=0.3;
 
+		double t = rand01()*t_max;
+		double x = a * exp(b*t) * cos(t);
+		x += drift*x*(rand01() - 0.5);
+		double y = a * exp(b*t) * sin(t);
+		y += drift*y*(rand01() - 0.5);
+
+		if(rand()%2) {
+			x *= -1;
+			y *= -1;
+		}
+
+		ps[i].x = x;
+		ps[i].y = y;
+		ps[i].z = (rand01()-0.5)*sqrt(x*x + y*y)*drift;
+	}
+	for(i=size-150; i<size; i++) {
+		ps[i].x = gaussian();
+		ps[i].y = gaussian();
+		ps[i].z = gaussian();
+		//generate_random_point_in_sphere(&ps[i].x, &ps[i].y, &ps[i].z);
+		double multi=0.4;
+		ps[i].x *= multi;
+		ps[i].y *= multi;
+		ps[i].z *= multi;
+		//ps[i].z = 0; (rand01()-0.5)*sqrt(ps[i].x*ps[i].x + ps[i].y*ps[i].y)*0.3;
+	}
+	for(i=0; i<size; i++) {
 		ps[i].mass = 1;
-		ps[i].v_x = 0;
-		ps[i].v_y = 0;
-		ps[i].v_z = 0;
+
+		double r = sqrt(ps[i].x*ps[i].x + ps[i].y*ps[i].y + ps[i].z*ps[i].z);
+		double vconst = 90; //sqrt(size/r)
+		double common = vconst/r;
+		
+
+		ps[i].v_x = common*ps[i].y;
+		ps[i].v_y = -common*ps[i].x;
+		ps[i].v_z = -common*ps[i].z;
 		ps[i].id = i;
+
 	}
 }
 
 
 void draw_line(png_byte **row_pointers, int dimension, double line, double linemin, double linemax, double x_min, double x_max, double y_min, double y_max, int width, int height, int color) {
+	// Get RGB Color
+	double hueprimed = ((double)color)/60.0;
+	double hueprimedmod2 = hueprimed - (double)((int)(hueprimed/2.0))*2.0;
+	double x = 1.0 - fabs(hueprimedmod2 - 1);
+	int r,g,b;
+	if(hueprimed < 1) {
+		r = 255;
+		g = 255*x;
+		b = 0;
+	} else if(hueprimed < 2) {
+		r = 255*x;
+		g = 255;
+		b = 0;
+	} else if(hueprimed < 3) {
+		r = 0;
+		g = 255;
+		b = 255*x;
+	}
+	else if(hueprimed < 4) {
+		r = 0;
+		g = 255*x;
+		b = 255;
+	} else if(hueprimed < 5) {
+		r = 255*x;
+		g = 0;
+		b = 255;
+	} else {
+		r = 255;
+		g = 0;
+		b = 255*x;
+	}
+
 	//Line is the boundary line value
 	//Linemin/max is the ones that constrain it in the 2d plane
 	double binsize_x = (x_max - x_min)/((double)width);
@@ -85,9 +194,9 @@ void draw_line(png_byte **row_pointers, int dimension, double line, double linem
 			ybin_max = height-1;
 
 		for(i=ybin_min; i<=ybin_max; i++) {
-			row_pointers[i][xbin*3] = 255;
-			row_pointers[i][xbin*3+1] = 255;
-			row_pointers[i][xbin*3+2] = 255;
+			row_pointers[i][xbin*3] = r;
+			row_pointers[i][xbin*3+1] = g;
+			row_pointers[i][xbin*3+2] = b;
 		}
 	}
 	else { //horizontal
@@ -102,9 +211,9 @@ void draw_line(png_byte **row_pointers, int dimension, double line, double linem
 			xbin_max = width-1;
 
 		for(i=xbin_min; i<=xbin_max; i++) {
-			row_pointers[ybin][i*3] = color;
-			row_pointers[ybin][i*3+1] = color;
-			row_pointers[ybin][i*3+2] = color;
+			row_pointers[ybin][i*3] = r;
+			row_pointers[ybin][i*3+1] = g;
+			row_pointers[ybin][i*3+2] = b;
 		}
 	}
 }
@@ -131,8 +240,7 @@ void draw_boundaries(png_byte **row_pointers, tree *root, double linex_min, doub
 			t = t->left;
 			max_depth++;
 		}
-		int color = 255*(max_depth - depth)/max_depth;
-		
+		int color = 360*(max_depth - depth)/max_depth;
 		
 		//printf("Boundary[%d-d%d-c%d]: boundary=%f linemin=%f linemax=%f\n", dimension, depth, color, boundary, linemin, linemax);
 	

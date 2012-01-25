@@ -4,8 +4,8 @@
 #include "particles.h"
 
 #define G 1
-#define THETA 0.8
-#define EPSILON 0.1
+#define THETA 0.2
+#define EPSILON 0.03
 
 int calc_counter;
 
@@ -23,6 +23,7 @@ void calc_a_traverse(particle *p, tree *node) {
 	double r2 = (p->x - node->p->x)*(p->x - node->p->x) + (p->y - node->p->y)*(p->y - node->p->y) + (p->z - node->p->z)*(p->z - node->p->z);
 
 	if(node->dimension != LEAF) {
+		//printf("D%d R %f Size %f Mass %f x %f y %f z %f\n", depth(node), sqrt(r2), node->size, node->p->mass, node->p->x, node->p->y, node->p->z); 
 		if(node->size / sqrt(r2) > THETA) { //too close
 			calc_a_traverse(p, node->left);
 			calc_a_traverse(p, node->right);
@@ -32,8 +33,6 @@ void calc_a_traverse(particle *p, tree *node) {
 		if(p == node->p)
 			return;
 	}
-
-
 
 	double common = G * node->p->mass / ((r2 + EPSILON*EPSILON) * sqrt(r2));
 	p->a_x += common*(node->p->x - p->x);
@@ -46,6 +45,7 @@ void calc_a_traverse(particle *p, tree *node) {
 		printf("a_x %f a_y %f a_z %f\n", p->a_x, p->a_y, p->a_z);
 	}*/
 
+	#pragma omp atomic
 	calc_counter++;
 }
 
@@ -63,7 +63,7 @@ void calc_a(particle *ps, int size, tree *root) {
 void iterate(double timestep, double *t, particle *ps, int size, tree *root) {
 	calc_a(ps, size, root);
 	int i;
-	// Euler
+	// Leapfrog
 	for(i=0; i<size; i++) {
 		ps[i].v_x += ps[i].a_x * timestep;
 		ps[i].v_y += ps[i].a_y * timestep;
@@ -86,18 +86,20 @@ int main() {
 	srand(123);
 	//particle *ps = test_particle();
 	
-	int size = 1024*2*2*2;
+	int size;
 	size =4096*2*2;
+	size = 16384*2*2;
+	//size = 128;
 	printf("Size - %d\n", size);
 
 	particle *ps = malloc(sizeof(particle)*size);
-	randomize_particles(ps, size);
+	
+	randomize_uniform_sphere(ps, size);
+	//randomize_particles(ps, size);
+	//generate_two_body(ps, size);
 
 	int i;
 
-	/*for(i=0; i<size; i++) {
-		printf("%f %f %f\n", ps[i].x, ps[i].y, ps[i].z);
-	}*/
 
 	particle **tree_copy = malloc(sizeof(particle *)*size);
 	for(i=0; i<size; i++) {
@@ -106,8 +108,8 @@ int main() {
 
 	tree *root;
 
-	double t = 0, timestep = 0.0005, t_max = 0.1;
-	timestep = 0.0002;
+	double t = 0, timestep = 0.0005, t_max = 0.02;
+	timestep = 0.00002;
 	int counter = 0;
 	char *output_filename = malloc(sizeof(char)*1000);
 
@@ -118,6 +120,13 @@ int main() {
 
 		
 		sprintf(output_filename, "out-%06d.png", counter);
+		/*
+		FILE *f = fopen(output_filename, "w");
+		for(i=0; i<size; i++) {
+			fprintf(f, "%g %g %g\n", ps[i].x, ps[i].y, ps[i].z);
+		}
+		fclose(f);*/
+		
 		output_image(output_filename, ps, size, NULL);
 	
 		gettimeofday(&tv2, NULL);
@@ -128,15 +137,24 @@ int main() {
 
 		calc_counter = 0;
 		iterate(timestep, &t, ps, size, root);
+	
 		gettimeofday(&tv4, NULL);
 
 		free_tree(root);
 		counter++;
+
+		int num_inside02 = 0;
+		for(i=0; i<size; i++) {
+			double r2 = ps[i].x*ps[i].x + ps[i].y*ps[i].y + ps[i].z*ps[i].z;
+			if(r2 < 0.2*0.2)
+				num_inside02++;
+		}
+		printf("Num r<0.2: %d\n", num_inside02);
 		
 		double dt1 = (tv2.tv_sec - tv1.tv_sec) + (tv2.tv_usec - tv1.tv_usec)/(double)1000000;
 		double dt2 = (tv3.tv_sec - tv2.tv_sec) + (tv3.tv_usec - tv2.tv_usec)/(double)1000000;
 		double dt3 = (tv4.tv_sec - tv3.tv_sec) + (tv4.tv_usec - tv3.tv_usec)/(double)1000000;
-		printf("t - %f, calc eff:(%d)%f [o:%f t:%f c:%f]\n", t, calc_counter, (double)calc_counter/(double)(size*size), dt1, dt2, dt3);
+		printf("t - %f, calc eff:(%d)%f [o:%f t:%f c:%f]\n", t, calc_counter, (double)calc_counter/(double)(size*(size-1)), dt1, dt2, dt3);
 
 	}
 
