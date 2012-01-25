@@ -70,12 +70,13 @@ void randomize_uniform_sphere(particle *ps, int size) {
 		ps[i].z *= multi;
 
 		ps[i].mass = 1;
+		ps[i].color = 0;
 	}
 }
 
-void randomize_particles(particle *ps, int size) {
+void galaxy(particle *ps, int size, double xoffset, double yoffset, double xvel, int color) {
 	int i;
-	for(i=0; i<size-150; i++) {
+	for(i=0; i<size-14000; i++) {
 		/*if(rand()%2)
 			ps[i].x = gaussian()/2 - 1;
 		else	
@@ -91,10 +92,10 @@ void randomize_particles(particle *ps, int size) {
 		ps[i].z *= multi;*/
 		
 		double a = 0.35;
-		double windings = 25;
+		double windings = 7;
 		double t_max = M_PI_2*windings;
 		double b = log(2.0/a)/t_max;
-		double drift=0.3;
+		double drift=0.2;
 
 		double t = rand01()*t_max;
 		double x = a * exp(b*t) * cos(t);
@@ -111,7 +112,7 @@ void randomize_particles(particle *ps, int size) {
 		ps[i].y = y;
 		ps[i].z = (rand01()-0.5)*sqrt(x*x + y*y)*drift;
 	}
-	for(i=size-150; i<size; i++) {
+	for(i=size-14000; i<size; i++) {
 		ps[i].x = gaussian();
 		ps[i].y = gaussian();
 		ps[i].z = gaussian();
@@ -126,51 +127,56 @@ void randomize_particles(particle *ps, int size) {
 		ps[i].mass = 1;
 
 		double r = sqrt(ps[i].x*ps[i].x + ps[i].y*ps[i].y + ps[i].z*ps[i].z);
-		double vconst = 90; //sqrt(size/r)
+		double vconst = 90;//sqrt(size/r);
 		double common = vconst/r;
-		
 
-		ps[i].v_x = common*ps[i].y;
+		ps[i].v_x = common*ps[i].y + xvel;
 		ps[i].v_y = -common*ps[i].x;
 		ps[i].v_z = -common*ps[i].z;
+		ps[i].x += xoffset;
+		ps[i].y += yoffset;
 		ps[i].id = i;
+		ps[i].color = color;
 
 	}
 }
 
-
-void draw_line(png_byte **row_pointers, int dimension, double line, double linemin, double linemax, double x_min, double x_max, double y_min, double y_max, int width, int height, int color) {
+void hsv(int hue, int *r, int *g, int *b) {
 	// Get RGB Color
-	double hueprimed = ((double)color)/60.0;
+	double hueprimed = ((double)hue)/60.0;
 	double hueprimedmod2 = hueprimed - (double)((int)(hueprimed/2.0))*2.0;
 	double x = 1.0 - fabs(hueprimedmod2 - 1);
-	int r,g,b;
 	if(hueprimed < 1) {
-		r = 255;
-		g = 255*x;
-		b = 0;
+		*r = 255;
+		*g = 255*x;
+		*b = 0;
 	} else if(hueprimed < 2) {
-		r = 255*x;
-		g = 255;
-		b = 0;
+		*r = 255*x;
+		*g = 255;
+		*b = 0;
 	} else if(hueprimed < 3) {
-		r = 0;
-		g = 255;
-		b = 255*x;
+		*r = 0;
+		*g = 255;
+		*b = 255*x;
 	}
 	else if(hueprimed < 4) {
-		r = 0;
-		g = 255*x;
-		b = 255;
+		*r = 0;
+		*g = 255*x;
+		*b = 255;
 	} else if(hueprimed < 5) {
-		r = 255*x;
-		g = 0;
-		b = 255;
+		*r = 255*x;
+		*g = 0;
+		*b = 255;
 	} else {
-		r = 255;
-		g = 0;
-		b = 255*x;
+		*r = 255;
+		*g = 0;
+		*b = 255*x;
 	}
+}
+
+void draw_line(png_byte **row_pointers, int dimension, double line, double linemin, double linemax, double x_min, double x_max, double y_min, double y_max, int width, int height, int color) {
+	int r,g,b;
+	hsv(color, &r, &g, &b);
 
 	//Line is the boundary line value
 	//Linemin/max is the ones that constrain it in the 2d plane
@@ -267,14 +273,17 @@ void output_image(char *f, particle *ps, int num_particles, tree *root) {
 	int height = 1000;
 	int i, j;
 	
-	double x_min=-2, x_max=2, y_min=-2, y_max = 2;
+	double x_min=-6, x_max=6, y_min=-6, y_max = 6;
 
 	// Histogram the particles
-	int *counters[height];
+	int *counters[height], *countersaltcolor[height];
 	for(i=0; i<height; i++) {
 		counters[i]=(int *)malloc(sizeof(int) * width);
-		for(j=0; j<width; j++)
+		countersaltcolor[i]=(int *)malloc(sizeof(int) * width);
+		for(j=0; j<width; j++) {
 			counters[i][j] = 0;
+			countersaltcolor[i][j] = 0;
+		}
 	}
 
 	double binsize_x = (x_max - x_min)/((double)width);
@@ -287,6 +296,9 @@ void output_image(char *f, particle *ps, int num_particles, tree *root) {
 		int xbin = (ps[i].x - x_min)/binsize_x;
 		int ybin = (ps[i].y - y_min)/binsize_y;
 		counters[ybin][xbin]++;
+
+		if(ps[i].color !=0)
+			countersaltcolor[ybin][xbin]++;
 	}
 	
 	int max_in_one_bin=0;
@@ -325,11 +337,16 @@ void output_image(char *f, particle *ps, int num_particles, tree *root) {
 		int j;
 		for(j=0; j<width; j++) {
 			if(counters[i][j] == 0) continue;
-			int val = counters[i][j]*255/max_in_one_bin;
-			if(val > 255) val = 255;
-			row_pointers[i][j*3] = val;
-			row_pointers[i][j*3+1] = 0; //g
-			row_pointers[i][j*3+2] = 0; //b
+			//int val = counters[i][j]*255/max_in_one_bin;
+			//if(val > 255) val = 255;
+			
+			int r,g,b,hue;
+			hue = 120*((double)(counters[i][j] - countersaltcolor[i][j])/counters[i][j]);
+			hsv(hue, &r, &g, &b);
+
+			row_pointers[i][j*3] = r;
+			row_pointers[i][j*3+1] = g; //g
+			row_pointers[i][j*3+2] = b; //b
 		}
 	}
 

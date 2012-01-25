@@ -15,8 +15,9 @@ struct particle {
 
 	double mass;
 	int id;
+	int color;
 };
 typedef struct particle particle;
 
 void output_image(char *f, particle *ps, int num_particles, struct tree *root);
-void randomize_particles(particle *ps, int size);
+void galaxy(particle *ps, int size, double xoffset, double yoffset, double xvel, int color);

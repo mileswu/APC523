@@ -87,15 +87,27 @@ int main() {
 	//particle *ps = test_particle();
 	
 	int size;
-	size =4096*2*2;
+	double timestep, t_max;
+
+
+	//Cold sphere
+	/*timestep = 0.00002;
+	t_max = 0.02;
 	size = 16384*2*2;
+	particle *ps = malloc(sizeof(particle)*size);
+	randomize_uniform_sphere(ps, size);*/
+
+	//Two Spirals
+	timestep = 0.0003;
+	t_max = 0.5;
+	size = 16384*2;
+	particle *ps = malloc(sizeof(particle)*size);
+	galaxy(ps, size/2, -4, 0.75, 15, 0);
+	galaxy(ps+size/2, size/2, 4, -0.75, -15, 1);
+
 	//size = 128;
 	printf("Size - %d\n", size);
 
-	particle *ps = malloc(sizeof(particle)*size);
-	
-	randomize_uniform_sphere(ps, size);
-	//randomize_particles(ps, size);
 	//generate_two_body(ps, size);
 
 	int i;
@@ -108,8 +120,7 @@ int main() {
 
 	tree *root;
 
-	double t = 0, timestep = 0.0005, t_max = 0.02;
-	timestep = 0.00002;
+	double t = 0;
 	int counter = 0;
 	char *output_filename = malloc(sizeof(char)*1000);
 
