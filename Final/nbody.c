@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
 		}
 		else if(opt == 2) {
 			timestep = 0.0003;
-			t_max = 0.5;
+			t_max = 0.225;
 			size = 16384*2;
 			ps = malloc(sizeof(particle)*size);
 			galaxy(ps, size/2, -4, 2.5, 30, 0);
