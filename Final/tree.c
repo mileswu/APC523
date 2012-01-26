@@ -1,11 +1,11 @@
 #include <stdio.h>
-#define _GNU_SOURCE
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 #include "tree.h"
 #include "particles.h"
 
-int median_qsortx(void *a, void *b) {
+int median_qsortx(const void *a, const void *b) {
 	double val1, val2;
 	
 	val1 = (*(particle **)a)->x;
@@ -19,7 +19,7 @@ int median_qsortx(void *a, void *b) {
 		return -1;
 }
 
-int median_qsorty(void *a, void *b) {
+int median_qsorty(const void *a, const void *b) {
 	double val1, val2;
 	
 	val1 = (*(particle **)a)->y;
@@ -33,7 +33,7 @@ int median_qsorty(void *a, void *b) {
 		return -1;
 }
 
-int median_qsortz(void *a, void *b) {
+int median_qsortz(const void *a, const void *b) {
 	double val1, val2;
 	
 	val1 = (*(particle **)a)->z;
@@ -66,6 +66,7 @@ double median(particle **ps, int size, int dimension) {
 		return 0.5*(p1->y + p2->y);
 	else if (dimension == Z)
 		return 0.5*(p1->z + p2->z);
+	return 0;
 }
 
 int depth(tree *t) {

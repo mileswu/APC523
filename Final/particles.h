@@ -21,3 +21,4 @@ typedef struct particle particle;
 
 void output_image(char *f, particle *ps, int num_particles, struct tree *root, double range);
 void galaxy(particle *ps, int size, double xoffset, double yoffset, double xvel, int color);
+void randomize_uniform_sphere(particle *ps, int size);
