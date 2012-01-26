@@ -6,7 +6,7 @@
 #include "particles.h"
 
 #define G 1
-#define THETA 0.3
+#define THETA 0.2
 #define EPSILON 0.03
 
 int calc_counter;
@@ -92,13 +92,14 @@ int main(int argc, char **argv) {
 	double timestep, t_max;
 	double range;
 	particle *ps;
+	int opt;
 
 	if(argc == 2) {
-		int opt = atoi(argv[1]);
+		opt = atoi(argv[1]);
 		if(opt == 1) {
 			timestep = 0.00002;
 			t_max = 0.02;
-			size = 16384;
+			size = 16384*4;
 			ps = malloc(sizeof(particle)*size);
 			randomize_uniform_sphere(ps, size);
 			range = 2;
@@ -167,13 +168,15 @@ int main(int argc, char **argv) {
 		free_tree(root);
 		counter++;
 
-		int num_inside02 = 0;
-		for(i=0; i<size; i++) {
-			double r2 = ps[i].x*ps[i].x + ps[i].y*ps[i].y + ps[i].z*ps[i].z;
-			if(r2 < 0.2*0.2)
-				num_inside02++;
+		if(opt == 1) {
+			int num_inside02 = 0;
+			for(i=0; i<size; i++) {
+				double r2 = ps[i].x*ps[i].x + ps[i].y*ps[i].y + ps[i].z*ps[i].z;
+				if(r2 < 0.2*0.2)
+					num_inside02++;
+			}
+			printf("Num r<0.2: %d\n", num_inside02);
 		}
-		printf("Num r<0.2: %d\n", num_inside02);
 		
 		double dt1 = (tv2.tv_sec - tv1.tv_sec) + (tv2.tv_usec - tv1.tv_usec)/(double)1000000;
 		double dt2 = (tv3.tv_sec - tv2.tv_sec) + (tv3.tv_usec - tv2.tv_usec)/(double)1000000;
