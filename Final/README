@@ -1,0 +1,18 @@
+Instructions - Miles Wu
+-----------------------
+
+Prequisites: You must have libpng installed (and the headers). This might be
+             available in your system's package manager under libpng or
+             lipng-dev or libpng-devel.
+
+1) make
+2) ./nbody <1 or 2>  (1: Cold sphere collapse, 2: Galaxy merger)
+
+Image files (out-******.png) will be produced as output, each one corresponding to
+the state at one timestep.
+
+If you wish to combine them into a movie you will need FFmpeg (again install via
+system's package manager) and run "ffmpeg -i out-%06d.png out.mp4". A standard
+H264/MP4 movie will be created then.
+
+
