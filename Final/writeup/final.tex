@@ -54,7 +54,7 @@ Because the particles are very far away from that one single particle, this appr
 A $k$-d tree can be used as a hierarchical solution to assist this, as they will automatically group particles that are close together which we use in our approximation.
 %Normally these are used in computer science for speeding up range searches and nearest neighbour searches, but here we use them slightly differently.
 The idea behind them is that each node of the tree defines a boundary that splits up the space.
-The further down the tree one goes, the smaller the cell created by the above nodes' boundaries is (one dimension of th cell shrinks every time one goes deeper), and therefore the fewer particles that are contained within that cell.
+The further down the tree one goes, the smaller the cell created by the above nodes' boundaries is (one dimension of the cell shrinks every time one goes deeper), and therefore the fewer particles that are contained within that cell.
 As the cells get smaller, the more spatially close together all the particles within the cell are.
 Eventually once you reach the bottom (leaf nodes) each node's cell contains a single particle.
 
@@ -246,7 +246,7 @@ Again each star has unit mass and $G =1$.
 
 To create the galaxy, approximately $2000$ stars were distributed in a logarithmic spiral with some random variations off the perfect spiral, and $14000$ of the stars were distributed using a 3D Gaussian with the mean at the center.
 This is meant to represent a disk-like spiral galaxy with a bulge in the center.
-Each star has a velocity of $90$ that is perpendicular to vector from the center of the galaxy.
+Each star has a velocity of $90$ that is perpendicular to the vector from the center of the galaxy.
 Notably absent from this simulation is a dark matter halo.
 
 Figure~\ref{merging} shows the results of this simulation at various times, with the two colors identifying which stars came from which original galaxy. A video showing the dynamic evolution is available on YouTube at: \url{http://youtu.be/qhcZDwLSHL8} (make sure to choose 720p).
@@ -271,6 +271,12 @@ After slingshotting around each other and intertwining their spirals for a small
 This simulation, although not entirely accurate, shows us that galaxy merging is possible and gives clues as to the mechanism and behavior.
 %given more time
 Given more time it would be nice to find better initial conditions and to use more particles that lead to more stable spiral galaxies, which would perhaps be more realistic with respect to real spiral galaxies.
+
+\section{Conclusion}
+Without the use of $k$-d trees it would have been much harder to perform these simulations.
+In the first simulation we had $65536$ particles and in the second $32768$.
+These numbers are just too large for standard brute-force gravity calculations due to the $O(n^2)$ scaling;  it would be too computationally intensive to do in a realistic timeframe without access to a supercomputer.
+With the use of the $O(n \log n)$ $k$-d tree we were able to do these simulations orders of magnitude faster, such that it only took less than an hour on a regular personal computer.
 
 \section{Credit}
 \begin{itemize}
