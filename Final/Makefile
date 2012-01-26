@@ -1,9 +1,9 @@
-CFLAGS = -g -Wall -O2
+CFLAGS = -g -Wall -O2 -fopenmp
 
-all: particles
+all: nbody
 
-particles: particles.o
-	$(CC) -o $@ $^ -lpng
+nbody: particles.o tree.o nbody.o
+	$(CC) $(CFLAGS) -o $@ $^ -lpng
 
 clean:
 	$(RM) *.o
