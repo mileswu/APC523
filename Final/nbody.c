@@ -6,7 +6,7 @@
 #include "particles.h"
 
 #define G 1
-#define THETA 0.5
+#define THETA 0.3
 #define EPSILON 0.03
 
 int calc_counter;
@@ -62,23 +62,6 @@ void calc_a(particle *ps, int size, tree *root) {
 	}
 }
 
-double energy(particle *ps, int size) {
-	int i, j;
-	double e = 0;
-	
-	for(i=0; i<size; i++) {
-		e += 0.5 * ps[i].mass * (ps[i].v_x*ps[i].v_x + ps[i].v_y*ps[i].v_y + ps[i].v_z*ps[i].v_z);
-	}
-	for(i=0; i<size; i++) {
-		for(j=i+1; j<size; j++) {
-			double r2 = pow(ps[i].x - ps[j].x, 2) + pow(ps[i].y - ps[j].y, 2) + pow(ps[i].z - ps[j].z, 2);
-			e -= G * ps[i].mass * ps[j].mass * atan(sqrt(r2)/EPSILON) / EPSILON;
-		}
-	}
-
-	return e;
-}
-
 void iterate(double timestep, double *t, particle *ps, int size, tree *root) {
 	calc_a(ps, size, root);
 	int i;
@@ -115,7 +98,7 @@ int main(int argc, char **argv) {
 		if(opt == 1) {
 			timestep = 0.00002;
 			t_max = 0.02;
-			size = 16384*2*2;
+			size = 16384;
 			ps = malloc(sizeof(particle)*size);
 			randomize_uniform_sphere(ps, size);
 			range = 2;
@@ -155,15 +138,11 @@ int main(int argc, char **argv) {
 	int counter = 0;
 	char *output_filename = malloc(sizeof(char)*1000);
 	
-	FILE *energy_f = fopen("energy.csv", "w");
-
 	printf("Ready\n");
 	while(t<t_max) {
 		struct timeval tv1, tv2, tv3, tv4;
 		gettimeofday(&tv1, NULL);
 
-		fprintf(energy_f, "%d %f\n", counter, energy(ps, size));
-		
 		sprintf(output_filename, "out-%06d.png", counter);
 		/*
 		FILE *f = fopen(output_filename, "w");
@@ -203,7 +182,6 @@ int main(int argc, char **argv) {
 
 	}
 
-	fclose(energy_f);
 	free(output_filename);
 	free(tree_copy);
 	free(ps);
