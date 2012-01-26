@@ -1,0 +1,289 @@
+\documentclass[11pt]{article}
+\setlength{\topmargin}{0in}
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+\setlength{\textheight}{8.7in}
+\setlength{\textwidth}{6.5in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+\setlength{\parindent}{0.3in}
+\setlength{\parskip}{0.10in}
+
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{hyperref}
+
+\begin{document}
+
+\title{$N$-body simulations using $k$-d trees}
+\author{Miles Wu}
+\maketitle
+
+\section{Introduction}
+Even though we know all the forces, positions and velocities for a given dynamical system, it is well known that there is only an analytical solution for 2-body problems (for instance the Sun and the Earth in isolation).
+While there are solutions for 3-body problems, they exist only for special cases, which are too specific to be generally useful (such as Sun-Earth-Moon where the Moon is of negligible mass to affect the Earth's orbit and the Sun is too far away to affect the moon's orbit).
+Without any analytical solution we must revert to a numerical method to simulate these dynamical systems.
+
+There are two parts to a $N$-body simulator: the calculation of all the forces, and the numerical integrator. 
+There are a variety of choices for each that we can use.
+A rudimentary simulator can be made just by calculating pair-wise (i.e. all combinations that form pairs, not including itself) all the interactions ($F = - GMm/r^2$), adding these all up vectorially and using basic Euler integration.
+While this can be precise, it is also only suitable for small-scale simulations with few particles (small $N$), because the pair-wise calculations scale as $N^2$ and the Euler integration tends to lose accuracy. 
+In this we investigate using a technique known as $k$-d trees for speeding up the force calculations and we use leapfrog integration.
+
+$N$-body simulations are useful for investigating many physical scientific problems, especially in astrophysics, such as the formation of galaxies and how galaxies interact with themselves and each other.
+Galaxies are just systems of billions and billions of particles, ranging from stars to planets, gas to dust, all interacting by gravity (because of the large distances involved, this is the dominant interaction).
+These galaxies are held together by gravity, and the galaxies themselves form clusters, again held together by gravity.
+In this, we examine two scenarios: first a cold sphere (no initial velocity) of particles collapsing and second two clusters of particles coming together and interacting.
+Even though we will not be using nearly as many particles as a real galaxy, nor will we be using real input data, these simulations can provide us with insight on their behavior, such as how galaxies form and interact with each other.
+
+%scientific question, explain and motivate
+
+\section{$k$-d trees}
+%approximation
+Gravitational interactions over long-range are much weaker compared to short-range ones due to the $1/r^2$ factor in the force law, so it seems apt that we can make an approximation for long-range ones that speed up the simulation.
+Imagine a particle that is very far away from a cluster of many particles that are clumped closely together.
+Instead of calculating the force contribution from each of those cluster particles, we can pretend all those particles are just one larger particle at the center of mass and with a mass equal to the total mass.
+Because the particles are very far away from that one single particle, this approximation holds pretty well.
+
+%diagram
+
+A $k$-d tree can be used as a hierarchical solution to assist this, as they will automatically group particles that are close together which we use in our approximation.
+%Normally these are used in computer science for speeding up range searches and nearest neighbour searches, but here we use them slightly differently.
+The idea behind them is that each node of the tree defines a boundary that splits up the space.
+The further down the tree one goes, the smaller the cell created by the above nodes' boundaries is (one dimension of th cell shrinks every time one goes deeper), and therefore the fewer particles that are contained within that cell.
+As the cells get smaller, the more spatially close together all the particles within the cell are.
+Eventually once you reach the bottom (leaf nodes) each node's cell contains a single particle.
+
+%how to construct
+Construction of a $k$-d tree is pretty simple too, which means that it is reasonably quick to do.
+First the dimension on which the node splits on is changed cyclically (i.e. $x \rightarrow y \rightarrow z \rightarrow x$ etc.) the further down the tree one goes.
+The boundary position is calculated as the median position (on that dimension) of all the particles in its cell.
+Particles that are left of this median are then assigned to the left node and those to the right to the right node, and for both of these nodes a new boundary split is calculated.
+This is repeated until there is only one particle left to consider.
+As we create the nodes, we calculate the center of mass and its total mass (which are relatively fast operations as they are only basic arithmetic and do not involve square roots) of its cell, as this will be used multiple times.
+We also calculate a metric known as size which is defined as:
+\begin{eqnarray}
+	\textnormal{size} &=& \sqrt{\sum_{\textnormal{particles in cell}} \frac{m_i |r|^2}{M}},
+\end{eqnarray}
+where $M$ is the total mass and $r$ is the distance from the center of mass to the particle.
+This `size', which is essentially the mass-weighted standard deviation of distance, gives an idea of how large the cell is.
+
+%diagram
+Figure~\ref{kdtree2d} shows the boundaries made by a 2D $k$-d tree for $256$ particles.
+The color indicates (starting at red and progressing through the colors to green) which depth of the tree the boundary belongs to.
+The particles themselves are red.
+Note how the central region which contains the highest density of particles has the most cells, and the outer regions do not.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=6in]{kdtree.png}
+\caption{A diagram showing the $k$-d tree partitioning for $256$ particles in 2D, most of which are situated in the middle of the picture.}
+\label{kdtree2d}
+\end{center}
+\end{figure}
+
+%power of two
+One thing that is important to note is that the $k$-d tree is balanced and all the particles live at the bottom leaf layer; this restricts the use of these trees to simulations involving $N=2^n$ particles.
+If we wanted to use a non-power-of-two number of particles, we could insert virtual particles that are extremely far away from the rest of the simulation and have zero mass to get it up to a power-of-two and learn to ignore these.
+
+%tree traversal
+When calculating the force for a given particle, we start off at the top of our $k$-d tree.
+We divide the size for that node by the distance from it to the node's center of mass.
+If this is bigger than a parameter ($\theta$) then it is too close and big for us to use the node as an approximation for the individual particles, so we recurse down both the left and the right sides of the tree.
+When we find a node for which the size divided by the distance is smaller than $\theta$, we then proceed to use its center of mass and total mass in the gravity force calculate (as if it were a larger particle) and this is added onto the total; there is no need to recurse further.
+The same happens when we reach a leaf node as this only contains the one particle.
+This traversal idea was adapted from Barnes-Hutt $n$-body simulation \cite{cos126}.
+
+%value for theta
+If $\theta = 0$ then it ends up being exactly the same as brute-force ($N^2$) as it'll recurse down to leaf nodes and end up using every particle.
+However, if $\theta > 0$ is used then it is clear that less calculations are required as sometimes the larger virtual particle is used instead of the individual ones, speeding up the simulation.
+Choosing the right value of $\theta$ depends on the desired accuracy: higher is more inaccurate but faster.
+In the end we chose a value of $\theta = 0.2$.
+%which value do we use?
+
+
+\section{Leapfrog Integrator}
+%continous equations
+Numerical integration of course requires discretizing the continuous differential equations.  
+Because gravitational attraction only depends on positions and not velocity or acceleration, the second-order differential equation we need to solve is this:
+\begin{eqnarray}
+	\ddot r_i = A(r_i^t, \cdots r_t^t).
+\end{eqnarray}
+
+%discrete
+Simple Euler integration has it so that the velocity is updated by $v^{t+\delta t} = v^{t} + a^{t} \delta t$ and $r^{t+\delta t} = r^{t} + v^{t} \delta t$, but this is not as suitable.
+Instead we use a method knows as Leapfrog integration.
+Here the positions and velocities are not stored at the same time steps, but at interleaved half steps, so that  they `leapfrog' over each other.
+The discretized equations that we use are:
+\begin{eqnarray}
+	a_i^t &=& A(r_i^t, \cdots r_t^t) \\
+	v_i^{t+\delta t/2} &=& v_i^{t-\delta t/2} + a_i^t \delta t \\
+	r_i^{t+\delta t} &=& r_i^t + v_i^{t+\delta t/2} \delta t
+\end{eqnarray}
+
+%symplectic/second order
+The Leapfrog method is a second order method, which makes it more accurate than Euler integration which is only first order, but it has the same number of function evaluations as Euler integration.
+It is also symplectic, which means that it conserves total energy in the system (as it is Hamiltonian).
+This makes it more accurate for long timescales as many other methods are dissipative and end up either gaining or losing energy, which is obviously not physically accurate.
+
+%epsilon
+We also introduce a softening parameter, $\epsilon$.
+This prevents the force blowing up (diverging) as the distance approaches zero, by providing a maximum force that is attainable.
+Although the force is very large in these situations, without a much smaller timestep, the integration is extremely inaccurate as it would assume the huge force acts for the whole timestep, but in reality it would only act for a small portion of the timestep as the particle would very quickly move away and have a much smaller force before the end of the timestep.
+We add the softening parameter, $\epsilon$, into the gravitational force calculation as follows:
+\begin{eqnarray}
+	F &=& -G \sum_{i \neq j} \frac{m_j}{|r_i - r_j|^2 + \epsilon^2} \frac{r_i - r_j}{|r_i - r_j|}.
+\end{eqnarray}
+
+The value for the parameter $\epsilon$ needs to be carefully chosen.
+If it is set as too small, then the particles have a tendency to slingshot away.
+If it is set as too large, then the simulation is more inaccurate as the gravitational forces calculated are always slightly wrong.
+We chose $\epsilon = 0.03$, because we are typically working with distributions of particles that are approximately unit distance apart.
+
+\section{Parallelization}
+%openmp
+In order to make the simulation faster, we engineered the program so that the main portion of it could be parallelized, namely the force calculations.
+Since each particle needs to have its force calculated and this is independent of all the other particles' force calculations, we used OpenMP to split the work up.
+Because OpenMP is a shared memory multiprocessing model, the $k$-d tree used in the calculations can be created first by one thread and then shared easily between all the threads during the force calculations.
+It is only ever read and not modified so we do not need to worry about concurrency issues.
+We keep a counter that tracks how many calculations are being done (this is a measure of the efficiency of the $k$-d tree), and since this is updated from many threads simultaneous we must direct OpenMP to do this increment atomically.
+
+To measure the speedup we performed a simulation with $N=16384$ particles distributed uniformly on a unit sphere with zero initial velocity and all unit mass.
+This simulation was run with a $\delta t = 0.001$ and $\theta = 0.5$ for a total of $200$ iterations.
+The runtimes for different levels of parallelizations are shown in Figure~\ref{speedup}. 
+
+%table showing speedup
+\begin{figure}
+\begin{center}
+\begin{tabular}{ |l | c  c| }
+\hline
+& Runtime (sec) & Speedup\\
+\hline
+No OpenMP & 769 &  \\
+OpenMP 2-core & 472 & $1.63\times$ \\
+OpenMP 4-core & 354 &  $2.17\times$ \\
+\hline
+\end{tabular}
+\end{center}
+\caption{A table showing the runtime of a simulation ($\delta t = 0.001$, $\theta = 0.5$, $200$ iterations, $N=16384$ distributed uniformly on a unit sphere with zero initial velocity and unit mass) with respect to different parellization configurations. }
+\label{speedup}
+\end{figure}
+
+While using OpenMP on my quad-core computer more than doubled the execution speed of the program, making it a well worth optimization, it is interesting to note that it is not scaling linearly.
+This is perhaps because of two possible reasons.
+First there are many bits of the code that are not parallelized, such as the image output and the tree construction, so these always take the same time regardless how many threads are used.
+Second it might be possible that memory bandwidth between the CPU and the RAM is being saturated and there are a lot of cache misses in traversing the $k$-d tree (it is not stored sequentially, but uses repeated malloc).
+%what to do about cache misses
+
+\section{Tests}
+%cross checked with earlier simulator used in HW3
+In an earlier homework (HW3) we created a brute-force $N$-body simulator with Leapfrog integreation.
+We used this program to cross-check this $k$-d tree simulator, by giving them both the same initial starting conditions and comparing the positions of all the particles after a small number of timesteps.
+After ten timesteps, particle positions between the two programs varied by less than $1\%$ and on average much less than that (approximately $0.1\%$).
+It is expected that they do not exactly match because using the $k$-d trees is an approximation.
+
+Although we could check it with a simple two body solution for which we know the analytical answer, there is little point as this would not test any of the $k$-d tree features (with only two particles there would be no point as the tree would not be very deep).
+
+%check kd-tree works
+We keep track of how many force calculations are done.
+If it were the usual brute-force calculation, then this number would be $N(N-1)$.
+This could be reduced to $(1/2) N(N-1)$ by updating both particles in the pair at the same time, but this is still $O(n^2)$.
+Using $k$-d trees the number of calculations should be $O(n \log n)$ \cite{kdgrav}.
+
+The red line in Figure~\ref{scaling} shows the actual number of calculations done per timestep as we vary the number of particles in the simulation.
+The green line is a best fit using $O(n \log n)$ and the blue line is $O(n^2)$.
+Given that this is a log-log graph, it is obvious that the blue line is not a possible fit and therefore the $k$-d tree really is acting like $O(n \log n)$, as expected.
+
+\begin{figure}
+\begin{center}
+\input{scaling.tex}
+\caption{A graph showing the number of force calculations performed per timestep versus the number of particles in the simulation.}
+\label{scaling}
+\end{center}
+\end{figure}
+
+%energy?
+Like in HW3 we could plot the system's energy over time to see if the simulator conserves this quantity as it should.
+However to do a calculation of the energy we would need to do that in $O(n^2)$ time which takes far too long with the number of particles we are considering to use (upwards of sixteen thousand), so there is little point in attempting to do so.
+
+%memory leak
+We checked for the presence of memory leaks using the `valgrind' debugger and we found none.
+This allows for the simulation to be run for a long time without it running out of memory, as the amount of memory it needs to use is constant throughout.
+With $N=32768$ particles the program uses approximately 13 MB on my system.
+
+\section{Collapsing cold sphere}
+%before after pic
+\begin{figure}
+  \centering
+  \subfloat[$t=0$]{\includegraphics[width=3.2in]{coldsphere-b.png}}                
+  \subfloat[$t= 0.006$ (300 timesteps)]{\includegraphics[width=3.2in]{coldsphere-a.png}}
+  \caption{The initial positions of the starts followed by their positions at $t=0.006$ (300 timesteps) for cold sphere collapse. There are $N=65536$ particles used. A video showing the dynamic evolution is available on YouTube at: \url{http://youtu.be/n_Fi-RbpjQo}}
+
+  \label{coldsphere}
+\end{figure}
+
+We uniformly distributed $N=65536$ particles throughout a unit sphere, all with unit mass ($G$ has been set to 0 too).
+This is an attempt to simulate how galaxies are formed through rapid-collapse.
+Figure~\ref{coldsphere} shows the results of the simulation (both the initial positions and the final positions).
+A video showing the dynamic evolution is available on YouTube at: \url{http://youtu.be/n_Fi-RbpjQo} (make sure to choose 720p).
+
+
+%num inside 0.2/conclusion
+At the start there were only 520 (less than $1\%$) particles within a radius of 0.2 of the origin, but at the end ($t=0.06$) 38406 particles (just under $59\%$) were inside this radius.
+The others ended up dispersed quite far off with quite a low density.
+This shows that stable galaxies can form from these cold spheres and that well over half of the original mass goes into the final galaxy.
+
+
+\section{Merging spiral galaxies}
+We next attempt to simulate two spiral galaxies (each with $N=16384$ stars in the galaxy) merging in order to investigate their behavior.
+We create two `galaxies' that are offset by some distance and give them velocity roughly towards each other.
+However, creating the `galaxies' turned out to be quite complicated.
+Again each star has unit mass and $G =1$.
+
+To create the galaxy, approximately $2000$ stars were distributed in a logarithmic spiral with some random variations off the perfect spiral, and $14000$ of the stars were distributed using a 3D Gaussian with the mean at the center.
+This is meant to represent a disk-like spiral galaxy with a bulge in the center.
+Each star has a velocity of $90$ that is perpendicular to vector from the center of the galaxy.
+Notably absent from this simulation is a dark matter halo.
+
+Figure~\ref{merging} shows the results of this simulation at various times, with the two colors identifying which stars came from which original galaxy. A video showing the dynamic evolution is available on YouTube at: \url{http://youtu.be/qhcZDwLSHL8} (make sure to choose 720p).
+
+%before after pic
+\begin{figure}
+  \centering
+\begin{tabular}{cc}
+  \subfloat[$t=0$]{\includegraphics[width=3.2in]{merger-1.png}} &      
+  \subfloat[$t=0.135$ (450 timesteps)]{\includegraphics[width=3.2in]{merger-3.png}} \\     
+  \subfloat[$t=0.1575$ (525 timesteps)]{\includegraphics[width=3.2in]{merger-4.png}} &
+  \subfloat[$t=0.1725$ (575 timesteps)]{\includegraphics[width=3.2in]{merger-5.png}}       
+\end{tabular}
+  \caption{The initial positions of the stars for spiral galaxy merging followed by their positions at various times. There are $N=16384$ particles used in each galaxy. A video showing the dynamic evolution is available on YouTube at: \url{http://youtu.be/qhcZDwLSHL8}
+}
+  \label{merging}
+\end{figure}
+
+%results
+It is interesting to see the behavior of the galaxies as they approach and attract towards each other.
+After slingshotting around each other and intertwining their spirals for a small period of time they eventually form one stable larger galaxy.
+This simulation, although not entirely accurate, shows us that galaxy merging is possible and gives clues as to the mechanism and behavior.
+%given more time
+Given more time it would be nice to find better initial conditions and to use more particles that lead to more stable spiral galaxies, which would perhaps be more realistic with respect to real spiral galaxies.
+
+\section{Credit}
+\begin{itemize}
+\item `libpng' was used to assist in the output of images in the PNG image format: \url{http://www.libpng.org}
+\item `ffmpeg' was used to convert the PNG images into MP4 video files for upload to YouTube: \url{http://ffmpeg.org}
+\item YouTube was used for hosting of the videos: \url{http://www.youtube.com}
+\end{itemize}
+
+\begin{thebibliography}{9}
+	\bibitem{kdgrav}
+		Brandon Allgood, \emph{PKDGRAV}, University of Washington, \url{http://hpcc.astro.washington.edu/faculty/trq/brandon/pkdgrav.html}
+	\bibitem{cos126}
+		Tom Ventimiglia and Kevin Wayne, \emph{Barnes-Hut Galaxy Simulator}, Princeton University (2003) \url{http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html}
+\end{thebibliography}
+
+\end{document} 
