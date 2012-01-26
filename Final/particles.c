@@ -70,7 +70,7 @@ void randomize_uniform_sphere(particle *ps, int size) {
 		ps[i].z *= multi;
 
 		ps[i].mass = 1;
-		ps[i].color = 0;
+		ps[i].color = 1;
 	}
 }
 
