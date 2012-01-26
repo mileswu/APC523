@@ -415,6 +415,7 @@ void output_image(char *f, particle *ps, int num_particles, tree *root) {
 
 		free(row_pointers[i]);
 		free(counters[i]);
+		free(countersaltcolor[i]);
 	}
 
 	return;
