@@ -4,7 +4,7 @@
 #include "particles.h"
 
 #define G 1
-#define THETA 0.2
+#define THETA 0.5
 #define EPSILON 0.03
 
 int calc_counter;
@@ -82,36 +82,48 @@ void iterate(double timestep, double *t, particle *ps, int size, tree *root) {
 
 
 
-int main() {
+int main(int argc, char **argv) {
 	srand(123);
 	//particle *ps = test_particle();
 	
 	int size;
 	double timestep, t_max;
+	double range;
+	particle *ps;
 
+	if(argc == 2) {
+		int opt = atoi(argv[1]);
+		if(opt == 1) {
+			timestep = 0.00002;
+			t_max = 0.02;
+			size = 16384*2*2;
+			ps = malloc(sizeof(particle)*size);
+			randomize_uniform_sphere(ps, size);
+			range = 2;
+		}
+		else if(opt == 2) {
+			timestep = 0.0003;
+			t_max = 0.5;
+			size = 16384*2;
+			ps = malloc(sizeof(particle)*size);
+			galaxy(ps, size/2, -4, 2.5, 35, 0);
+			galaxy(ps+size/2, size/2, 4, -2.5, -35, 1);
+			range = 6;
+		}
+		else {
+			printf("Usage: %s <1 or 2>\n", argv[0]);
+			printf("1 = Cold sphere collapse\n2 = Galaxy merger\n");
+			return 1;
+		}
+	}
+	else {
+			printf("Usage: %s <1 or 2>\n", argv[0]);
+			printf("1 = Cold sphere collapse\n2 = Galaxy merger\n");
+			return 1;
+	}
 
-	//Cold sphere
-	/*timestep = 0.00002;
-	t_max = 0.02;
-	size = 16384*2*2;
-	particle *ps = malloc(sizeof(particle)*size);
-	randomize_uniform_sphere(ps, size);*/
-
-	//Two Spirals
-	timestep = 0.0003;
-	t_max = 0.5;
-	size = 16384*2;
-	particle *ps = malloc(sizeof(particle)*size);
-	galaxy(ps, size/2, -4, 0.75, 15, 0);
-	galaxy(ps+size/2, size/2, 4, -0.75, -15, 1);
-
-	//size = 128;
 	printf("Size - %d\n", size);
-
-	//generate_two_body(ps, size);
-
 	int i;
-
 
 	particle **tree_copy = malloc(sizeof(particle *)*size);
 	for(i=0; i<size; i++) {
@@ -138,7 +150,7 @@ int main() {
 		}
 		fclose(f);*/
 		
-		output_image(output_filename, ps, size, NULL);
+		output_image(output_filename, ps, size, NULL, range);
 	
 		gettimeofday(&tv2, NULL);
 		

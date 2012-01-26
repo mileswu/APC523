@@ -268,12 +268,12 @@ void draw_boundaries(png_byte **row_pointers, tree *root, double linex_min, doub
 
 }
 
-void output_image(char *f, particle *ps, int num_particles, tree *root) {
+void output_image(char *f, particle *ps, int num_particles, tree *root, double range) {
 	int width = 1000;
 	int height = 1000;
 	int i, j;
 	
-	double x_min=-6, x_max=6, y_min=-6, y_max = 6;
+	double x_min=-range, x_max=range, y_min=-range, y_max = range;
 
 	// Histogram the particles
 	int *counters[height], *countersaltcolor[height];
